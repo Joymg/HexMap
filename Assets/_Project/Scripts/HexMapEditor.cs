@@ -9,7 +9,8 @@ namespace joymg
 
         public HexGrid hexGrid;
 
-        private Color activeColor;
+        private Color currentColor;
+        private int currentElevation;
 
         void Awake()
         {
@@ -31,13 +32,25 @@ namespace joymg
             if (Physics.Raycast(inputRay, out hit) &&
                 !EventSystem.current.IsPointerOverGameObject())
             {
-                hexGrid.ColorCell(hit.point, activeColor);
+                EditCell(hexGrid.GetCell(hit.point));
             }
+        }
+
+        void EditCell(HexCell cell)
+        {
+            cell.Color = currentColor;
+            cell.Elevation = currentElevation;
+            hexGrid.Refresh();
         }
 
         public void SelectColor(int index)
         {
-            activeColor = colors[index];
+            currentColor = colors[index];
+        }
+
+        public void SetElevation(float elevation)
+        {
+            currentElevation = (int)elevation;
         }
     }
 }
