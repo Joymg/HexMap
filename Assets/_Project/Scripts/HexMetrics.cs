@@ -20,6 +20,7 @@ namespace joymg
 
         public static Texture2D noiseSource;
         public const float cellPerturbationStrength = 5.0f;
+        public const float noiseScale = 0.003f;
 
         static Vector3[] corners = {
             new Vector3(0f, 0f, outerRadius),
@@ -57,7 +58,6 @@ namespace joymg
                  blendFactor;
         }
 
-
         public static Vector3 TerraceLerp(Vector3 a, Vector3 b, int step)
         {
             float h = step * horizontalTerraceStepSize;
@@ -67,6 +67,7 @@ namespace joymg
             a.y += (b.y - a.y) * v;
             return a;
         }
+
         public static Color TerraceLerp(Color a, Color b, int step)
         {
             float h = step * HexMetrics.horizontalTerraceStepSize;
@@ -89,7 +90,7 @@ namespace joymg
 
         public static Vector4 SampleNoise(Vector3 position)
         {
-            return noiseSource.GetPixelBilinear(position.x, position.z);
+            return noiseSource.GetPixelBilinear(position.x * noiseScale, position.z * noiseScale);
         }
 
     }
