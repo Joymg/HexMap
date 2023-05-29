@@ -45,7 +45,7 @@ namespace joymg
 
         private void Triangulate(HexCell hexCell)
         {
-            for(HexDirection d = HexDirection.NE; d<= HexDirection.NW; d++)
+            for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
             {
                 Triangulate(d, hexCell);
             }
@@ -94,9 +94,9 @@ namespace joymg
         private void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3)
         {
             int vertexIndex = vertices.Count;
-            vertices.Add(v1);
-            vertices.Add(v2);
-            vertices.Add(v3);
+            vertices.Add(Perturb(v1));
+            vertices.Add(Perturb(v2));
+            vertices.Add(Perturb(v3));
             triangles.Add(vertexIndex);
             triangles.Add(vertexIndex + 1);
             triangles.Add(vertexIndex + 2);
@@ -124,10 +124,10 @@ namespace joymg
         private void AddQuad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
         {
             int vertexIndex = vertices.Count;
-            vertices.Add(v1);
-            vertices.Add(v2);
-            vertices.Add(v3);
-            vertices.Add(v4);
+            vertices.Add(Perturb(v1));
+            vertices.Add(Perturb(v2));
+            vertices.Add(Perturb(v3));
+            vertices.Add(Perturb(v4));
 
             triangles.Add(vertexIndex);
             triangles.Add(vertexIndex + 2);
@@ -150,6 +150,15 @@ namespace joymg
             colors.Add(c2);
             colors.Add(c3);
             colors.Add(c4);
+        }
+
+        private Vector3 Perturb(Vector3 position)
+        {
+            Vector4 sample = HexMetrics.SampleNoise(position);
+            position.x += sample.x * 2f - 1f;
+            position.y += sample.y * 2f - 1f;
+            position.z += sample.z * 2f - 1f;
+            return position;
         }
     }
 }
