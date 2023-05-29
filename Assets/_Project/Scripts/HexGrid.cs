@@ -6,8 +6,7 @@ namespace joymg
 {
     public class HexGrid : MonoBehaviour
     {
-        [SerializeField]
-        private int chunkCountX = 4, chunkCountZ = 3;
+        public int chunkCountX = 4, chunkCountZ = 3;
         
         private int cellCountX, cellCountZ;
 
