@@ -16,6 +16,9 @@ namespace joymg
         private float zoom = 1f;
 
         [SerializeField]
+        private float rotationSpeed;
+        private float rotationAngle;
+        [SerializeField]
         private float moveSpeedMinZoom, moveSpeedMaxZoom;
 
         private void Awake()
@@ -32,6 +35,12 @@ namespace joymg
                 AdjustZoom(zoomDelta);
             }
 
+            float rotationDelta = Input.GetAxis("Rotation");
+            if (rotationDelta != 0f)
+            {
+                AdjustRotation(rotationDelta);
+            }
+
             float xDelta = Input.GetAxis("Horizontal");
             float zDelta = Input.GetAxis("Vertical");
 
@@ -41,9 +50,23 @@ namespace joymg
             }
         }
 
+        private void AdjustRotation(float rotationDelta)
+        {
+            rotationAngle += rotationDelta * rotationSpeed * Time.deltaTime;
+            if (rotationAngle < 0f)
+            {
+                rotationAngle += 360f;
+            }
+            else if (rotationAngle > 360f)
+            {
+                rotationAngle -= 360f;
+            }
+            transform.localRotation = Quaternion.Euler(0f, rotationAngle, 0f);
+        }
+
         private void AdjustPosition(float xDelta, float zDelta)
         {
-            Vector3 direction = new Vector3(xDelta, 0, zDelta).normalized;
+            Vector3 direction = transform.localRotation * new Vector3(xDelta, 0, zDelta).normalized;
             float damping = Mathf.Max(Mathf.Abs(xDelta), Mathf.Abs(zDelta));
             float distance = Mathf.Lerp(moveSpeedMinZoom, moveSpeedMaxZoom, zoom) * damping * Time.deltaTime;
 
@@ -60,7 +83,7 @@ namespace joymg
             position.x = Mathf.Clamp(position.x, 0f, xMax);
 
             float zMax =
-                (grid.chunkCountZ * HexMetrics.chunkSizeZ - 1 )*
+                (grid.chunkCountZ * HexMetrics.chunkSizeZ - 1) *
                 (1.5f * HexMetrics.outerRadius);
             position.z = Mathf.Clamp(position.z, 0f, zMax);
 
