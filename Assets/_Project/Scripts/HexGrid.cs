@@ -98,6 +98,7 @@ namespace joymg
             label.text = cell.Coordinates.ToStringOnSeparateLines();
 
             cell.uiRect = label.rectTransform;
+            cell.Elevation = 0;
         }
 
         public HexCell GetCell(Vector3 position)

@@ -53,7 +53,7 @@ namespace joymg
 
         private void Triangulate(HexDirection direction, HexCell hexCell)
         {
-            Vector3 center = hexCell.transform.localPosition;
+            Vector3 center = hexCell.Position;
             Vector3 v1 = center + HexMetrics.GetFirstSolidCorner(direction);
             Vector3 v2 = center + HexMetrics.GetSecondSolidCorner(direction);
 
@@ -77,7 +77,7 @@ namespace joymg
             Vector3 bridge = HexMetrics.GetBridge(direction);
             Vector3 v3 = v1 + bridge;
             Vector3 v4 = v2 + bridge;
-            v3.y = v4.y = neighbor.Elevation * HexMetrics.elevationStep;
+            v3.y = v4.y = neighbor.Position.y;
 
             if (hexCell.GetEdgeType(direction) == HexEdgeType.Slope)
             {
@@ -94,7 +94,7 @@ namespace joymg
             if (direction <= HexDirection.E && nextNeighbor != null)
             {
                 Vector3 v5 = v2 + HexMetrics.GetBridge(direction.Next());
-                v5.y = nextNeighbor.Elevation * HexMetrics.elevationStep;
+                v5.y = nextNeighbor.Position.y;
 
 
                 if (hexCell.Elevation <= neighbor.Elevation)
@@ -385,7 +385,7 @@ namespace joymg
         {
             Vector4 sample = HexMetrics.SampleNoise(position);
             position.x += (sample.x * 2f - 1f) * HexMetrics.cellPerturbationStrength;
-            position.y += (sample.y * 2f - 1f) * HexMetrics.cellPerturbationStrength;
+            //position.y += (sample.y * 2f - 1f) * HexMetrics.cellPerturbationStrength;
             position.z += (sample.z * 2f - 1f) * HexMetrics.cellPerturbationStrength;
             return position;
         }

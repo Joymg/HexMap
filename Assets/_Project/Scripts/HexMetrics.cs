@@ -21,6 +21,7 @@ namespace joymg
         public static Texture2D noiseSource;
         public const float cellPerturbationStrength = 5.0f;
         public const float noiseScale = 0.003f;
+        public const float elevationPerturbationStrength = 1.5f;
 
         static Vector3[] corners = {
             new Vector3(0f, 0f, outerRadius),
