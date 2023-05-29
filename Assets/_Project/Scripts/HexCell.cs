@@ -7,15 +7,28 @@ namespace joymg
         [SerializeField]
         private HexCoordinates coordinates;
         private Color color;
-        private int elevation;
+        private int elevation = int.MinValue;
 
         [SerializeField]
         private HexCell[] neighbors;
+        public HexGridChunk chunk;
 
         public RectTransform uiRect;
 
         public HexCoordinates Coordinates { get => coordinates; set => coordinates = value; }
-        public Color Color { get => color; set => color = value; }
+        public Color Color 
+        { 
+            get => color;
+            set
+            {
+                if (color == value)
+                {
+                    return;
+                }
+                color = value;
+                Refresh();
+            } 
+        }
 
         public Vector3 Position
         {
@@ -30,6 +43,10 @@ namespace joymg
             get => elevation;
             set
             {
+                if (elevation == value)
+                {
+                    return;
+                }
                 elevation = value;
                 Vector3 position = transform.localPosition;
                 position.y = value * HexMetrics.elevationStep;
@@ -39,6 +56,24 @@ namespace joymg
                 Vector3 uiPosition = uiRect.localPosition;
                 uiPosition.z = -position.y;
                 uiRect.localPosition = uiPosition;
+
+                Refresh();
+            }
+        }
+
+        void Refresh()
+        {
+            if (chunk)
+            {
+                chunk.Refresh();
+                for (int i = 0; i < neighbors.Length; i++)
+                {
+                    HexCell neighbor = neighbors[i];
+                    if (neighbor != null && neighbor.chunk != null)
+                    {
+                        neighbor.chunk.Refresh();
+                    }
+                }
             }
         }
 

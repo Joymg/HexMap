@@ -40,7 +40,6 @@ namespace joymg
         {
             cell.Color = currentColor;
             cell.Elevation = currentElevation;
-            hexGrid.Refresh();
         }
 
         public void SelectColor(int index)

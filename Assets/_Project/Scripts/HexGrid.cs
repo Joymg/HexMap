@@ -1,21 +1,25 @@
 using UnityEngine;
 using TMPro;
+using System;
 
 namespace joymg
 {
     public class HexGrid : MonoBehaviour
     {
         [SerializeField]
-        private int width = 6, height = 6;
+        private int chunkCountX = 4, chunkCountZ = 3;
+        
+        private int cellCountX, cellCountZ;
 
         [SerializeField]
         private HexCell cellPrefab;
         [SerializeField]
-        public TextMeshProUGUI cellLabelPrefab;
+        private TextMeshProUGUI cellLabelPrefab;
+        [SerializeField]
+        private HexGridChunk chunkPrebab;
 
-        private Canvas gridCanvas;
-        private HexMesh hexMesh;
         private HexCell[] cells;
+        private HexGridChunk[] chunks;
 
         [SerializeField]
         private Color defaultColor = Color.white;
@@ -29,23 +33,39 @@ namespace joymg
         void Awake()
         {
             HexMetrics.noiseSource = noiseSource;
-            gridCanvas = GetComponentInChildren<Canvas>();
-            hexMesh = GetComponentInChildren<HexMesh>();
 
-            cells = new HexCell[height * width];
+            cellCountX = chunkCountX * HexMetrics.chunkSizeX;
+            cellCountZ = chunkCountZ * HexMetrics.chunkSizeZ;
 
-            for (int z = 0, i = 0; z < height; z++)
+            CreateChunks();
+            CreateCells();
+        }
+
+        private void CreateChunks()
+        {
+            chunks = new HexGridChunk[chunkCountX * chunkCountZ];
+
+            for (int z = 0,i = 0; z < chunkCountZ; z++)
             {
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < chunkCountX; x++)
                 {
-                    CreateCell(x, z, i++);
+                    HexGridChunk chunk = chunks[i++] = Instantiate(chunkPrebab);
+                    chunk.transform.SetParent(transform);
                 }
             }
         }
 
-        private void Start()
+        private void CreateCells()
         {
-            hexMesh.Triangulate(cells);
+            cells = new HexCell[cellCountZ * cellCountX];
+
+            for (int z = 0, i = 0; z < cellCountZ; z++)
+            {
+                for (int x = 0; x < cellCountX; x++)
+                {
+                    CreateCell(x, z, i++);
+                }
+            }
         }
 
         private void OnEnable()
@@ -61,7 +81,7 @@ namespace joymg
             position.z = z * (HexMetrics.outerRadius * 1.5f);
 
             HexCell cell = cells[i] = Instantiate<HexCell>(cellPrefab);
-            cell.transform.SetParent(transform, false);
+            //cell.transform.SetParent(transform, false);
             cell.transform.localPosition = position;
             cell.Coordinates = HexCoordinates.FromOffsetCoordiantes(x, z);
             cell.Color = defaultColor;
@@ -75,30 +95,43 @@ namespace joymg
             {
                 if ((z & 1) == 0)
                 {
-                    cell.SetNeighbor(HexDirection.SE, cells[i - width]);
+                    cell.SetNeighbor(HexDirection.SE, cells[i - cellCountX]);
                     if (x > 0)
                     {
-                        cell.SetNeighbor(HexDirection.SW, cells[i - width - 1]);
+                        cell.SetNeighbor(HexDirection.SW, cells[i - cellCountX - 1]);
                     }
                 }
                 else
                 {
-                    cell.SetNeighbor(HexDirection.SW, cells[i - width]);
-                    if (x < width - 1)
+                    cell.SetNeighbor(HexDirection.SW, cells[i - cellCountX]);
+                    if (x < cellCountX - 1)
                     {
-                        cell.SetNeighbor(HexDirection.SE, cells[i - width + 1]);
+                        cell.SetNeighbor(HexDirection.SE, cells[i - cellCountX + 1]);
                     }
                 }
             }
 
             TextMeshProUGUI label = Instantiate<TextMeshProUGUI>(cellLabelPrefab);
-            label.rectTransform.SetParent(gridCanvas.transform, false);
+            //label.rectTransform.SetParent(gridCanvas.transform, false);
             label.rectTransform.anchoredPosition =
                 new Vector2(position.x, position.z);
             label.text = cell.Coordinates.ToStringOnSeparateLines();
 
             cell.uiRect = label.rectTransform;
             cell.Elevation = 0;
+
+            AddCellToChunk(x, z, cell);
+        }
+
+        private void AddCellToChunk(int x, int z, HexCell cell)
+        {
+            int chunkX = x / HexMetrics.chunkSizeX;
+            int chunkZ = z / HexMetrics.chunkSizeZ;
+            HexGridChunk chunk = chunks[chunkX + chunkZ * chunkCountX];
+
+            int localX = x - chunkX * HexMetrics.chunkSizeX;
+            int localZ = z - chunkZ * HexMetrics.chunkSizeZ;
+            chunk.AddCell(localX + localZ * HexMetrics.chunkSizeX, cell);
         }
 
         public HexCell GetCell(Vector3 position)
@@ -106,13 +139,9 @@ namespace joymg
 
             position = transform.InverseTransformPoint(position);
             HexCoordinates coordinates = HexCoordinates.FromPosition(position);
-            int index = coordinates.X + coordinates.Z * width + coordinates.Z / 2;
+            int index = coordinates.X + coordinates.Z * cellCountX + coordinates.Z / 2;
             return cells[index];
         }
 
-        public void Refresh()
-        {
-            hexMesh.Triangulate(cells);
-        }
     }
 }

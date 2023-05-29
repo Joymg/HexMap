@@ -10,18 +10,15 @@ namespace joymg
         private Mesh hexMesh;
         private MeshCollider meshCollider;
 
-        private List<Vector3> vertices;
-        private List<int> triangles;
-        private List<Color> colors;
+        private static List<Vector3> vertices = new List<Vector3>();
+        private static List<int> triangles = new List<int>();
+        private static List<Color> colors = new List<Color>();
 
         void Awake()
         {
             GetComponent<MeshFilter>().mesh = hexMesh = new Mesh();
             meshCollider = GetComponent<MeshCollider>();
             hexMesh.name = "Hex Mesh";
-            vertices = new List<Vector3>();
-            triangles = new List<int>();
-            colors = new List<Color>();
         }
 
         internal void Triangulate(HexCell[] cells)

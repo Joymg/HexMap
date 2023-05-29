@@ -23,7 +23,9 @@ namespace joymg
         public const float noiseScale = 0.003f;
         public const float elevationPerturbationStrength = 1.5f;
 
-        static Vector3[] corners = {
+        public const int chunkSizeX = 5, chunkSizeZ = 5;
+
+        private static Vector3[] corners = {
             new Vector3(0f, 0f, outerRadius),
             new Vector3(innerRadius, 0f, 0.5f * outerRadius),
             new Vector3(innerRadius, 0f, -0.5f * outerRadius),
