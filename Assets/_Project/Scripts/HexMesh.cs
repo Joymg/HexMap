@@ -155,9 +155,9 @@ namespace joymg
         private Vector3 Perturb(Vector3 position)
         {
             Vector4 sample = HexMetrics.SampleNoise(position);
-            position.x += sample.x * 2f - 1f;
-            position.y += sample.y * 2f - 1f;
-            position.z += sample.z * 2f - 1f;
+            position.x += (sample.x * 2f - 1f) * HexMetrics.cellPerturbationStrength;
+            position.y += (sample.y * 2f - 1f) * HexMetrics.cellPerturbationStrength;
+            position.z += (sample.z * 2f - 1f) * HexMetrics.cellPerturbationStrength;
             return position;
         }
     }

@@ -13,6 +13,7 @@ namespace joymg
         public const float elevationStep = 5f;
 
         public static Texture2D noiseSource;
+        public const float cellPerturbationStrength = 5.0f;
 
         static Vector3[] corners = {
             new Vector3(0f, 0f, outerRadius),
