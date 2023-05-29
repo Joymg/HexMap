@@ -57,16 +57,23 @@ namespace joymg
             Vector3 v1 = center + HexMetrics.GetFirstSolidCorner(direction);
             Vector3 v2 = center + HexMetrics.GetSecondSolidCorner(direction);
 
-            AddTriangle(center, v1, v2);
+            Vector3 e1 = Vector3.Lerp(v1, v2, 1f / 3f);
+            Vector3 e2 = Vector3.Lerp(v1, v2, 2f / 3f);
+
+            AddTriangle(center, v1, e1);
+            AddTriangleColor(hexCell.Color);
+            AddTriangle(center, e1, e2);
+            AddTriangleColor(hexCell.Color);
+            AddTriangle(center, e2, v2);
             AddTriangleColor(hexCell.Color);
 
             if (direction <= HexDirection.SE)
             {
-                TriangulateConnection(direction, hexCell, v1, v2);
+                TriangulateConnection(direction, hexCell, v1, e1, e2, v2);
             }
         }
 
-        private void TriangulateConnection(HexDirection direction, HexCell hexCell, Vector3 v1, Vector3 v2)
+        private void TriangulateConnection(HexDirection direction, HexCell hexCell, Vector3 v1, Vector3 e1, Vector3 e2, Vector3 v2)
         {
             HexCell neighbor = hexCell.GetNeighbor(direction);
             if (neighbor == null)
@@ -79,13 +86,20 @@ namespace joymg
             Vector3 v4 = v2 + bridge;
             v3.y = v4.y = neighbor.Position.y;
 
+            Vector3 e3 = Vector3.Lerp(v3, v4, 1f / 3f);
+            Vector3 e4 = Vector3.Lerp(v3, v4, 2f / 3f);
+
             if (hexCell.GetEdgeType(direction) == HexEdgeType.Slope)
             {
                 TriangulateEdgeTerraces(v1, v2, hexCell, v3, v4, neighbor);
             }
             else
             {
-                AddQuad(v1, v2, v3, v4);
+                AddQuad(v1, e1, v3, e3);
+                AddQuadColor(hexCell.Color, neighbor.Color);
+                AddQuad(e1, e2, e3, e4);
+                AddQuadColor(hexCell.Color, neighbor.Color);
+                AddQuad(e2, v2, e4, v4);
                 AddQuadColor(hexCell.Color, neighbor.Color);
             }
 
@@ -173,7 +187,7 @@ namespace joymg
                     );
                 }
                 else
-                   TriangulateCornerTerracesCliff(bottom, bottomCell, left, leftCell, right, rightCell);
+                    TriangulateCornerTerracesCliff(bottom, bottomCell, left, leftCell, right, rightCell);
             }
             else if (rightEdgeType == HexEdgeType.Slope)
             {
