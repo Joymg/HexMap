@@ -17,6 +17,7 @@ namespace joymg
 			hexMesh = GetComponentInChildren<HexMesh>();
 
 			cells = new HexCell[HexMetrics.chunkSizeX * HexMetrics.chunkSizeZ];
+			ShowUI(false);
 		}
 
         public void AddCell(int index, HexCell cell)
@@ -32,7 +33,12 @@ namespace joymg
 			enabled = true;
 		}
 
-        private void LateUpdate()
+		public void ShowUI(bool visible)
+		{
+			gridCanvas.gameObject.SetActive(visible);
+		}
+
+		private void LateUpdate()
         {
 			hexMesh.Triangulate(cells);
 			enabled = false;
