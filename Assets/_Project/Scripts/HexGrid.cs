@@ -17,11 +17,18 @@ namespace joymg
         private HexMesh hexMesh;
         private HexCell[] cells;
 
-        public Color defaultColor = Color.white;
-        public Color touchedColor = new Color(210, 45, 150, 255);
+        [SerializeField]
+        private Color defaultColor = Color.white;
+        [SerializeField]
+        private Color touchedColor = new Color(210, 45, 150, 255);
+
+        [SerializeField]
+        private Texture2D noiseSource;
+
 
         void Awake()
         {
+            HexMetrics.noiseSource = noiseSource;
             gridCanvas = GetComponentInChildren<Canvas>();
             hexMesh = GetComponentInChildren<HexMesh>();
 
@@ -39,6 +46,11 @@ namespace joymg
         private void Start()
         {
             hexMesh.Triangulate(cells);
+        }
+
+        private void OnEnable()
+        {
+            HexMetrics.noiseSource = noiseSource;
         }
 
         void CreateCell(int x, int z, int i)

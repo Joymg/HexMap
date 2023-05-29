@@ -12,6 +12,8 @@ namespace joymg
 
         public const float elevationStep = 5f;
 
+        public static Texture2D noiseSource;
+
         static Vector3[] corners = {
             new Vector3(0f, 0f, outerRadius),
             new Vector3(innerRadius, 0f, 0.5f * outerRadius),
@@ -46,6 +48,11 @@ namespace joymg
         {
             return (corners[(int)direction] + corners[(int)direction + 1]) *
                  blendFactor;
+        }
+
+        public static Vector4 SampleNoise(Vector3 position)
+        {
+            return noiseSource.GetPixelBilinear(position.x, position.z);
         }
     }
 }
