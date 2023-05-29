@@ -54,26 +54,20 @@ namespace joymg
         private void Triangulate(HexDirection direction, HexCell hexCell)
         {
             Vector3 center = hexCell.Position;
-            Vector3 v1 = center + HexMetrics.GetFirstSolidCorner(direction);
-            Vector3 v2 = center + HexMetrics.GetSecondSolidCorner(direction);
+            EdgeVertices edge = new EdgeVertices(
+                center + HexMetrics.GetFirstSolidCorner(direction),
+                center + HexMetrics.GetSecondSolidCorner(direction)
+            );
 
-            Vector3 e1 = Vector3.Lerp(v1, v2, 1f / 3f);
-            Vector3 e2 = Vector3.Lerp(v1, v2, 2f / 3f);
-
-            AddTriangle(center, v1, e1);
-            AddTriangleColor(hexCell.Color);
-            AddTriangle(center, e1, e2);
-            AddTriangleColor(hexCell.Color);
-            AddTriangle(center, e2, v2);
-            AddTriangleColor(hexCell.Color);
+            TriangulateEdgeFan(center, edge, hexCell.Color);
 
             if (direction <= HexDirection.SE)
             {
-                TriangulateConnection(direction, hexCell, v1, e1, e2, v2);
+                TriangulateConnection(direction, hexCell, edge);
             }
         }
 
-        private void TriangulateConnection(HexDirection direction, HexCell hexCell, Vector3 v1, Vector3 e1, Vector3 e2, Vector3 v2)
+        private void TriangulateConnection(HexDirection direction, HexCell hexCell, EdgeVertices edge)
         {
             HexCell neighbor = hexCell.GetNeighbor(direction);
             if (neighbor == null)
@@ -82,32 +76,26 @@ namespace joymg
             }
 
             Vector3 bridge = HexMetrics.GetBridge(direction);
-            Vector3 v3 = v1 + bridge;
-            Vector3 v4 = v2 + bridge;
-            v3.y = v4.y = neighbor.Position.y;
-
-            Vector3 e3 = Vector3.Lerp(v3, v4, 1f / 3f);
-            Vector3 e4 = Vector3.Lerp(v3, v4, 2f / 3f);
+            bridge.y = neighbor.Position.y - hexCell.Position.y;
+            EdgeVertices edge2 = new EdgeVertices(
+                edge.v1 + bridge,
+                edge.v4 + bridge
+            );
 
             if (hexCell.GetEdgeType(direction) == HexEdgeType.Slope)
             {
-                TriangulateEdgeTerraces(v1, v2, hexCell, v3, v4, neighbor);
+                TriangulateEdgeTerraces(edge, hexCell, edge2, neighbor);
             }
             else
             {
-                AddQuad(v1, e1, v3, e3);
-                AddQuadColor(hexCell.Color, neighbor.Color);
-                AddQuad(e1, e2, e3, e4);
-                AddQuadColor(hexCell.Color, neighbor.Color);
-                AddQuad(e2, v2, e4, v4);
-                AddQuadColor(hexCell.Color, neighbor.Color);
+                TriangulateEdgeStrip(edge, hexCell.Color, edge2, neighbor.Color);
             }
 
             HexCell nextNeighbor = hexCell.GetNeighbor(direction.Next());
             //creating connection triangles only in some of the directions, avoiding creating them trice
             if (direction <= HexDirection.E && nextNeighbor != null)
             {
-                Vector3 v5 = v2 + HexMetrics.GetBridge(direction.Next());
+                Vector3 v5 = edge.v4 + HexMetrics.GetBridge(direction.Next());
                 v5.y = nextNeighbor.Position.y;
 
 
@@ -116,53 +104,45 @@ namespace joymg
                     if (hexCell.Elevation <= nextNeighbor.Elevation)
                     {
                         //hexcell has lowest elevation or tied  for lowest
-                        TriangulateCorner(v2, hexCell, v4, neighbor, v5, nextNeighbor);
+                        TriangulateCorner(edge.v4, hexCell, edge2.v4, neighbor, v5, nextNeighbor);
                     }
                     else
                     {
                         //next neighbor is ranked lowest
-                        TriangulateCorner(v5, nextNeighbor, v2, hexCell, v4, neighbor);
+                        TriangulateCorner(v5, nextNeighbor, edge.v4, hexCell, edge2.v4, neighbor);
                     }
                 }
                 else if (neighbor.Elevation <= nextNeighbor.Elevation)
                 {
                     //neighbor is lowest
-                    TriangulateCorner(v4, neighbor, v5, nextNeighbor, v2, hexCell);
+                    TriangulateCorner(edge2.v4, neighbor, v5, nextNeighbor, edge.v4, hexCell);
                 }
                 else
                 {
                     //next neighbor is lowest
-                    TriangulateCorner(v5, nextNeighbor, v2, hexCell, v4, neighbor);
+                    TriangulateCorner(v5, nextNeighbor, edge.v4, hexCell, edge2.v4, neighbor);
                 }
             }
         }
 
-        private void TriangulateEdgeTerraces(Vector3 beginLeft, Vector3 beginRight,
-            HexCell beginCell, Vector3 endLeft, Vector3 endRight, HexCell endCell)
+        private void TriangulateEdgeTerraces(EdgeVertices begin,
+            HexCell beginCell, EdgeVertices end, HexCell endCell)
         {
-            Vector3 v3 = HexMetrics.TerraceLerp(beginLeft, endLeft, 1);
-            Vector3 v4 = HexMetrics.TerraceLerp(beginRight, endRight, 1);
+            EdgeVertices edge2 = EdgeVertices.TerraceLerp(begin, end, 1);
             Color c2 = HexMetrics.TerraceLerp(beginCell.Color, endCell.Color, 1);
 
-            AddQuad(beginLeft, beginRight, v3, v4);
-            //Averaging the colors
-            AddQuadColor(beginCell.Color, c2);
-
+            TriangulateEdgeStrip(begin, beginCell.Color, edge2, c2);
 
             for (int i = 2; i < HexMetrics.terraceSteps; i++)
             {
-                Vector3 v1 = v3;
-                Vector3 v2 = v4;
+                EdgeVertices edge = edge2;
                 Color c1 = c2;
-                v3 = HexMetrics.TerraceLerp(beginLeft, endLeft, i);
-                v4 = HexMetrics.TerraceLerp(beginRight, endRight, i);
+                edge2 = EdgeVertices.TerraceLerp(begin, end, i);
                 c2 = HexMetrics.TerraceLerp(beginCell.Color, endCell.Color, i);
-                AddQuad(v1, v2, v3, v4);
-                AddQuadColor(c1, c2);
+                TriangulateEdgeStrip(edge, c1, edge2, c2);
             }
 
-            AddQuad(v3, v4, endLeft, endRight);
-            AddQuadColor(c2, endCell.Color);
+            TriangulateEdgeStrip(edge2, c2, end, endCell.Color);
         }
 
         void TriangulateCorner(
@@ -331,6 +311,29 @@ namespace joymg
 
             AddTriangle(v2, left, boundary);
             AddTriangleColor(c2, leftCell.Color, boundaryColor);
+        }
+
+        private void TriangulateEdgeFan(Vector3 center, EdgeVertices edge, Color color)
+        {
+            AddTriangle(center, edge.v1, edge.v2);
+            AddTriangleColor(color);
+            AddTriangle(center, edge.v2, edge.v3);
+            AddTriangleColor(color);
+            AddTriangle(center, edge.v3, edge.v4);
+            AddTriangleColor(color);
+        }
+
+        private void TriangulateEdgeStrip(
+            EdgeVertices e1, Color c1,
+            EdgeVertices e2, Color c2
+        )
+        {
+            AddQuad(e1.v1, e1.v2, e2.v1, e2.v2);
+            AddQuadColor(c1, c2);
+            AddQuad(e1.v2, e1.v3, e2.v2, e2.v3);
+            AddQuadColor(c1, c2);
+            AddQuad(e1.v3, e1.v4, e2.v3, e2.v4);
+            AddQuadColor(c1, c2);
         }
 
 
