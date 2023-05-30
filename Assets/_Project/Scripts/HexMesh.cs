@@ -70,6 +70,10 @@ namespace joymg
                         TriangulateWithRiver(direction, hexCell, center, edge);
                     }
                 }
+                else
+                {
+                    TriangulateAdjacentToRiver(direction, hexCell, center, edge);
+                }
             }
             else
             {
@@ -81,6 +85,33 @@ namespace joymg
             {
                 TriangulateConnection(direction, hexCell, edge);
             }
+        }
+
+        private void TriangulateAdjacentToRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
+        {
+            if (hexCell.HasRiverThroughEdge(direction.Next()))
+            {
+                if (hexCell.HasRiverThroughEdge(direction.Previous()))
+                {
+                    center += HexMetrics.GetSolidEdgeMiddle(direction) *
+                        (HexMetrics.innerToOuter * 0.5f);
+                }
+                else if (hexCell.HasRiverThroughEdge(direction.Previous2()))
+                {
+                    center += HexMetrics.GetFirstSolidCorner(direction) * 0.25f;
+                }
+            }
+            else if (hexCell.HasRiverThroughEdge(direction.Previous()) &&
+                hexCell.HasRiverThroughEdge(direction.Next2())
+            )
+            {
+                center += HexMetrics.GetSecondSolidCorner(direction) * 0.25f;
+            }
+
+            EdgeVertices middleEdge = new EdgeVertices(Vector3.Lerp(center, edge.v1, 0.5f), Vector3.Lerp(center, edge.v5, 0.5f));
+
+            TriangulateEdgeStrip(middleEdge, hexCell.Color, edge, hexCell.Color);
+            TriangulateEdgeFan(center, middleEdge, hexCell.Color);
         }
 
         private void TriangulateWithRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
@@ -105,7 +136,7 @@ namespace joymg
             else if (hexCell.HasRiverThroughEdge(direction.Next2()))
             {
                 centerLeft = center;
-                centerRight = center + HexMetrics.GetSolidEdgeMiddle(direction.Next()) * (0.5f * HexMetrics.innerToOuter); 
+                centerRight = center + HexMetrics.GetSolidEdgeMiddle(direction.Next()) * (0.5f * HexMetrics.innerToOuter);
             }
             else
             {
