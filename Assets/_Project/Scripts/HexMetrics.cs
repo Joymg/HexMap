@@ -103,6 +103,14 @@ namespace joymg
             return noiseSource.GetPixelBilinear(position.x * noiseScale, position.z * noiseScale);
         }
 
+        public static Vector3 Perturb(Vector3 position)
+        {
+            Vector4 sample = SampleNoise(position);
+            position.x += (sample.x * 2f - 1f) * cellPerturbationStrength;
+            position.z += (sample.z * 2f - 1f) * cellPerturbationStrength;
+            return position;
+        }
+
         public static Vector3 GetSolidEdgeMiddle(HexDirection direction)
         {
             return (corners[(int)direction] + corners[(int)direction + 1]) * (0.5f * solidFactor);
