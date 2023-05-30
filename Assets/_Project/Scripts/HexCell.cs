@@ -21,8 +21,8 @@ namespace joymg
         private HexDirection incomingRiver, outgoingRiver;
 
         public HexCoordinates Coordinates { get => coordinates; set => coordinates = value; }
-        public Color Color 
-        { 
+        public Color Color
+        {
             get => color;
             set
             {
@@ -32,7 +32,7 @@ namespace joymg
                 }
                 color = value;
                 Refresh();
-            } 
+            }
         }
 
         public Vector3 Position
@@ -62,6 +62,15 @@ namespace joymg
                 uiPosition.z = -position.y;
                 uiRect.localPosition = uiPosition;
 
+                if (hasOutgoingRiver && elevation < GetNeighbor(outgoingRiver).elevation)
+                {
+                    RemoveOutgoingRiver();
+                }
+                if ( hasIncomingRiver && elevation > GetNeighbor(incomingRiver).elevation)
+                {
+                    RemoveIncomingRiver();
+                }
+
                 Refresh();
             }
         }
@@ -72,7 +81,7 @@ namespace joymg
         public HexDirection OutgoingRiver { get => outgoingRiver; }
         public bool HasRiver { get => hasIncomingRiver || hasOutgoingRiver; }
         public bool HasRiverStartOrEnd { get => hasIncomingRiver != hasOutgoingRiver; }
-        
+
 
         void Refresh()
         {
