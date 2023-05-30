@@ -102,9 +102,15 @@ namespace joymg
                 centerLeft = Vector3.Lerp(center, edge.v1, 2f / 3f);
                 centerRight = center;
             }
+            else if (hexCell.HasRiverThroughEdge(direction.Next2()))
+            {
+                centerLeft = center;
+                centerRight = center + HexMetrics.GetSolidEdgeMiddle(direction.Next()) * (0.5f * HexMetrics.innerToOuter); 
+            }
             else
             {
-                centerLeft = centerRight = center;
+                centerLeft = center + HexMetrics.GetSolidEdgeMiddle(direction.Previous()) * (0.5f * HexMetrics.innerToOuter);
+                centerRight = center;
             }
 
             center = Vector3.Lerp(centerLeft, centerRight, 0.5f);
