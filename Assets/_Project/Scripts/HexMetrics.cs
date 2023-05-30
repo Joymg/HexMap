@@ -24,13 +24,13 @@ namespace joymg
         public const float verticalTerraceStepSize = 1f / (terracesPerSlope + 1);
 
         public static Texture2D noiseSource;
-        public const float cellPerturbationStrength = 0f;
+        public const float cellPerturbationStrength = 4f;
         public const float noiseScale = 0.003f;
         public const float elevationPerturbationStrength = 1.5f;
 
         public const int chunkSizeX = 5, chunkSizeZ = 5;
 
-        public const float streamBedElevationOffset = -1f;
+        public const float streamBedElevationOffset = -1.75f;
         public const float riverSurfaceElevationOffset = -0.5f;
 
         private static Vector3[] corners = {

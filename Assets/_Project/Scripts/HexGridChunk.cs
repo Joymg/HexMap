@@ -3,47 +3,47 @@ using UnityEngine;
 
 namespace joymg
 {
-	public class HexGridChunk : MonoBehaviour
-	{
+    public class HexGridChunk : MonoBehaviour
+    {
 
-		private HexCell[] cells;
+        private HexCell[] cells;
 
-		public HexMesh terrain, rivers;
-		private Canvas gridCanvas;
+        public HexMesh terrain, rivers;
+        private Canvas gridCanvas;
 
-		private void Awake()
-		{
-			gridCanvas = GetComponentInChildren<Canvas>();
+        private void Awake()
+        {
+            gridCanvas = GetComponentInChildren<Canvas>();
 
-			cells = new HexCell[HexMetrics.chunkSizeX * HexMetrics.chunkSizeZ];
-			ShowUI(false);
-		}
+            cells = new HexCell[HexMetrics.chunkSizeX * HexMetrics.chunkSizeZ];
+            ShowUI(false);
+        }
 
         public void AddCell(int index, HexCell cell)
         {
-			cells[index] = cell;
-			cell.chunk = this;
-			cell.transform.SetParent(transform, false);
-			cell.uiRect.SetParent(gridCanvas.transform, false);
+            cells[index] = cell;
+            cell.chunk = this;
+            cell.transform.SetParent(transform, false);
+            cell.uiRect.SetParent(gridCanvas.transform, false);
         }
 
-		public void Refresh()
-		{
-			enabled = true;
-		}
-
-		public void ShowUI(bool visible)
-		{
-			gridCanvas.gameObject.SetActive(visible);
-		}
-
-		private void LateUpdate()
+        public void Refresh()
         {
-			Triangulate();
-			enabled = false;
+            enabled = true;
         }
 
-        internal void Triangulate()
+        public void ShowUI(bool visible)
+        {
+            gridCanvas.gameObject.SetActive(visible);
+        }
+
+        private void LateUpdate()
+        {
+            Triangulate();
+            enabled = false;
+        }
+
+        public void Triangulate()
         {
             terrain.Clear();
             rivers.Clear();
@@ -176,7 +176,7 @@ namespace joymg
             terrain.AddTriangleColor(hexCell.Color);
 
             bool reversed = hexCell.IncomingRiver == direction;
-            TriangulateRiverQuad(centerLeft, centerRight, middleEdge.v2, middleEdge.v4, hexCell.RiverSurfaceY, 0.8f, reversed);
+            TriangulateRiverQuad(centerLeft, centerRight, middleEdge.v2, middleEdge.v4, hexCell.RiverSurfaceY, 0.4f, reversed);
             TriangulateRiverQuad(middleEdge.v2, middleEdge.v4, edge.v2, edge.v4, hexCell.RiverSurfaceY, 0.6f, reversed);
         }
 
@@ -246,7 +246,7 @@ namespace joymg
 
             if (hexCell.HasRiverThroughEdge(direction))
             {
-                edge2.v3.y = hexCell.StreamBedY;
+                edge2.v3.y = neighbor.StreamBedY;
                 TriangulateRiverQuad(
                     edge.v2, edge.v4, edge2.v2, edge2.v4,
                     hexCell.RiverSurfaceY, neighbor.RiverSurfaceY, 0.8f,
@@ -269,7 +269,6 @@ namespace joymg
             {
                 Vector3 v5 = edge.v5 + HexMetrics.GetBridge(direction.Next());
                 v5.y = nextNeighbor.Position.y;
-
 
                 if (hexCell.Elevation <= neighbor.Elevation)
                 {
