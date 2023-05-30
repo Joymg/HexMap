@@ -56,6 +56,11 @@ namespace joymg
                 center + HexMetrics.GetSecondSolidCorner(direction)
             );
 
+            if (hexCell.HasRiverThroughEdge(direction))
+            {
+                edge.v3.y = hexCell.StreamBedY;
+            }
+
             TriangulateEdgeFan(center, edge, hexCell.Color);
 
             if (direction <= HexDirection.SE)
@@ -76,8 +81,13 @@ namespace joymg
             bridge.y = neighbor.Position.y - hexCell.Position.y;
             EdgeVertices edge2 = new EdgeVertices(
                 edge.v1 + bridge,
-                edge.v4 + bridge
+                edge.v5 + bridge
             );
+
+            if (hexCell.HasRiverThroughEdge(direction))
+            {
+                edge2.v3.y = hexCell.StreamBedY;
+            }
 
             if (hexCell.GetEdgeType(direction) == HexEdgeType.Slope)
             {
@@ -92,7 +102,7 @@ namespace joymg
             //creating connection triangles only in some of the directions, avoiding creating them trice
             if (direction <= HexDirection.E && nextNeighbor != null)
             {
-                Vector3 v5 = edge.v4 + HexMetrics.GetBridge(direction.Next());
+                Vector3 v5 = edge.v5 + HexMetrics.GetBridge(direction.Next());
                 v5.y = nextNeighbor.Position.y;
 
 
@@ -101,23 +111,23 @@ namespace joymg
                     if (hexCell.Elevation <= nextNeighbor.Elevation)
                     {
                         //hexcell has lowest elevation or tied  for lowest
-                        TriangulateCorner(edge.v4, hexCell, edge2.v4, neighbor, v5, nextNeighbor);
+                        TriangulateCorner(edge.v5, hexCell, edge2.v5, neighbor, v5, nextNeighbor);
                     }
                     else
                     {
                         //next neighbor is ranked lowest
-                        TriangulateCorner(v5, nextNeighbor, edge.v4, hexCell, edge2.v4, neighbor);
+                        TriangulateCorner(v5, nextNeighbor, edge.v5, hexCell, edge2.v5, neighbor);
                     }
                 }
                 else if (neighbor.Elevation <= nextNeighbor.Elevation)
                 {
                     //neighbor is lowest
-                    TriangulateCorner(edge2.v4, neighbor, v5, nextNeighbor, edge.v4, hexCell);
+                    TriangulateCorner(edge2.v5, neighbor, v5, nextNeighbor, edge.v5, hexCell);
                 }
                 else
                 {
                     //next neighbor is lowest
-                    TriangulateCorner(v5, nextNeighbor, edge.v4, hexCell, edge2.v4, neighbor);
+                    TriangulateCorner(v5, nextNeighbor, edge.v5, hexCell, edge2.v5, neighbor);
                 }
             }
         }
@@ -317,6 +327,8 @@ namespace joymg
             AddTriangleColor(color);
             AddTriangle(center, edge.v3, edge.v4);
             AddTriangleColor(color);
+            AddTriangle(center, edge.v4, edge.v5);
+            AddTriangleColor(color);
         }
 
         private void TriangulateEdgeStrip(
@@ -329,6 +341,8 @@ namespace joymg
             AddQuad(e1.v2, e1.v3, e2.v2, e2.v3);
             AddQuadColor(c1, c2);
             AddQuad(e1.v3, e1.v4, e2.v3, e2.v4);
+            AddQuadColor(c1, c2);
+            AddQuad(e1.v4, e1.v5, e2.v4, e2.v5);
             AddQuadColor(c1, c2);
         }
 

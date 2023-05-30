@@ -75,6 +75,8 @@ namespace joymg
             }
         }
 
+        public float StreamBedY { get => (elevation + HexMetrics.streamBedElevationOffset) * HexMetrics.elevationStep; }
+
         public bool HasIncomingRiver { get => hasIncomingRiver; }
         public bool HasOutgoingRiver { get => hasOutgoingRiver; }
         public HexDirection IncomingRiver { get => incomingRiver; }
