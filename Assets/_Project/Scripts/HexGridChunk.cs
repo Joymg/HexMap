@@ -8,7 +8,7 @@ namespace joymg
 
 		private HexCell[] cells;
 
-		public HexMesh terrain;
+		public HexMesh terrain, rivers;
 		private Canvas gridCanvas;
 
 		private void Awake()
@@ -46,11 +46,13 @@ namespace joymg
         internal void Triangulate()
         {
             terrain.Clear();
+            rivers.Clear();
             for (int i = 0; i < cells.Length; i++)
             {
                 Triangulate(cells[i]);
             }
             terrain.Apply();
+            rivers.Apply();
         }
 
         private void Triangulate(HexCell hexCell)
@@ -172,6 +174,10 @@ namespace joymg
             terrain.AddQuadColor(hexCell.Color);
             terrain.AddTriangle(centerRight, middleEdge.v4, middleEdge.v5);
             terrain.AddTriangleColor(hexCell.Color);
+
+            bool reversed = hexCell.IncomingRiver == direction;
+            TriangulateRiverQuad(centerLeft, centerRight, middleEdge.v2, middleEdge.v4, hexCell.RiverSurfaceY, 0.8f, reversed);
+            TriangulateRiverQuad(middleEdge.v2, middleEdge.v4, edge.v2, edge.v4, hexCell.RiverSurfaceY, 0.6f, reversed);
         }
 
         private void TriangulateWithRiverStartOrEnd(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
@@ -182,7 +188,45 @@ namespace joymg
             TriangulateEdgeStrip(middleEdge, hexCell.Color, edge, hexCell.Color);
             TriangulateEdgeFan(center, middleEdge, hexCell.Color);
 
+            bool reversed = hexCell.HasIncomingRiver;
+            TriangulateRiverQuad(
+                middleEdge.v2, middleEdge.v4, edge.v2, edge.v4, hexCell.RiverSurfaceY, 0.6f, reversed
+            );
 
+            center.y = middleEdge.v2.y = middleEdge.v4.y = hexCell.RiverSurfaceY;
+            rivers.AddTriangle(center, middleEdge.v2, middleEdge.v4);
+            if (reversed)
+            {
+                rivers.AddTriangleUV(
+                    new Vector2(0.5f, 0.4f), new Vector2(1f, 0.2f), new Vector2(0f, 0.2f)
+                );
+            }
+            else
+            {
+                rivers.AddTriangleUV(
+                    new Vector2(0.5f, 0.4f), new Vector2(0f, .6f), new Vector2(1f, 0.6f)
+                );
+            }
+        }
+
+        void TriangulateRiverQuad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, float y, float v, bool reversed)
+        {
+            TriangulateRiverQuad(v1, v2, v3, v4, y, y, v, reversed);
+        }
+
+        private void TriangulateRiverQuad(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, float y1, float y2, float v, bool reversed)
+        {
+            v1.y = v2.y = y1;
+            v3.y = v4.y = y2;
+            rivers.AddQuad(v1, v2, v3, v4);
+            if (reversed)
+            {
+                rivers.AddQuadUV(1f, 0f, 0.8f - v, 0.6f - v);
+            }
+            else
+            {
+                rivers.AddQuadUV(0f, 1f, v, v + 0.2f);
+            }
         }
 
         private void TriangulateConnection(HexDirection direction, HexCell hexCell, EdgeVertices edge)
@@ -203,6 +247,11 @@ namespace joymg
             if (hexCell.HasRiverThroughEdge(direction))
             {
                 edge2.v3.y = hexCell.StreamBedY;
+                TriangulateRiverQuad(
+                    edge.v2, edge.v4, edge2.v2, edge2.v4,
+                    hexCell.RiverSurfaceY, neighbor.RiverSurfaceY, 0.8f,
+                    hexCell.HasIncomingRiver && hexCell.IncomingRiver == direction
+                );
             }
 
             if (hexCell.GetEdgeType(direction) == HexEdgeType.Slope)

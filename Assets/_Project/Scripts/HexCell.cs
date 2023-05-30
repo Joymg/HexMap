@@ -66,7 +66,7 @@ namespace joymg
                 {
                     RemoveOutgoingRiver();
                 }
-                if ( hasIncomingRiver && elevation > GetNeighbor(incomingRiver).elevation)
+                if (hasIncomingRiver && elevation > GetNeighbor(incomingRiver).elevation)
                 {
                     RemoveIncomingRiver();
                 }
@@ -76,6 +76,12 @@ namespace joymg
         }
 
         public float StreamBedY { get => (elevation + HexMetrics.streamBedElevationOffset) * HexMetrics.elevationStep; }
+        public float RiverSurfaceY
+        {
+            get => (elevation + HexMetrics.riverSurfaceElevationOffset) *
+                    HexMetrics.elevationStep;
+
+        }
 
         public bool HasIncomingRiver { get => hasIncomingRiver; }
         public bool HasOutgoingRiver { get => hasOutgoingRiver; }
