@@ -56,17 +56,62 @@ namespace joymg
                 center + HexMetrics.GetSecondSolidCorner(direction)
             );
 
-            if (hexCell.HasRiverThroughEdge(direction))
+            if (hexCell.HasRiver)
             {
-                edge.v3.y = hexCell.StreamBedY;
+                if (hexCell.HasRiverThroughEdge(direction))
+                {
+                    edge.v3.y = hexCell.StreamBedY;
+                    if (hexCell.HasRiverStartOrEnd) 
+                    {
+                        TriangulateWithRiverStartOrEnd(direction, hexCell, center, edge);
+                    }
+                    else
+                    {
+                        TriangulateWithRiver(direction, hexCell, center, edge);
+                    }
+                }
+            }
+            else
+            {
+                TriangulateEdgeFan(center, edge, hexCell.Color);
             }
 
-            TriangulateEdgeFan(center, edge, hexCell.Color);
 
             if (direction <= HexDirection.SE)
             {
                 TriangulateConnection(direction, hexCell, edge);
             }
+        }
+
+        private void TriangulateWithRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
+        {
+            Vector3 centerLeft = center + HexMetrics.GetFirstSolidCorner(direction.Previous()) * 0.25f;
+            Vector3 centerRight = center + HexMetrics.GetSecondSolidCorner(direction.Next()) * .25f;
+
+            EdgeVertices middleEdge = new EdgeVertices(Vector3.Lerp(centerLeft, edge.v1, 0.5f), Vector3.Lerp(centerRight, edge.v5, 0.5f), 1f / 6f);
+            middleEdge.v3.y = center.y = edge.v3.y;
+
+            TriangulateEdgeStrip(middleEdge, hexCell.Color, edge, hexCell.Color);
+
+            AddTriangle(centerLeft, middleEdge.v1, middleEdge.v2);
+            AddTriangleColor(hexCell.Color);
+            AddQuad(centerLeft, center, middleEdge.v2, middleEdge.v3);
+            AddQuadColor(hexCell.Color);
+            AddQuad(center, centerRight, middleEdge.v3, middleEdge.v4);
+            AddQuadColor(hexCell.Color);
+            AddTriangle(centerRight, middleEdge.v4, middleEdge.v5);
+            AddTriangleColor(hexCell.Color);
+        }
+
+        private void TriangulateWithRiverStartOrEnd(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
+        {
+            EdgeVertices middleEdge = new EdgeVertices(Vector3.Lerp(center, edge.v1, 0.5f), Vector3.Lerp(center, edge.v5, 0.5f));
+            middleEdge.v3.y = edge.v3.y;
+
+            TriangulateEdgeStrip(middleEdge, hexCell.Color, edge, hexCell.Color);
+            TriangulateEdgeFan(center, middleEdge, hexCell.Color);
+
+
         }
 
         private void TriangulateConnection(HexDirection direction, HexCell hexCell, EdgeVertices edge)
@@ -298,7 +343,8 @@ namespace joymg
             Vector3 begin, HexCell beginCell,
             Vector3 left, HexCell leftCell,
             Vector3 boundary, Color boundaryColor
-        ) {
+        )
+        {
             Vector3 v2 = Perturb(HexMetrics.TerraceLerp(begin, left, 1));
             Color c2 = HexMetrics.TerraceLerp(beginCell.Color, leftCell.Color, 1);
 
@@ -404,6 +450,13 @@ namespace joymg
             triangles.Add(vertexIndex + 3);
         }
 
+        private void AddQuadColor(Color color)
+        {
+            colors.Add(color);
+            colors.Add(color);
+            colors.Add(color);
+            colors.Add(color);
+        }
         private void AddQuadColor(Color c1, Color c2)
         {
             colors.Add(c1);
