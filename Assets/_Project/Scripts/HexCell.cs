@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace joymg
@@ -14,6 +15,10 @@ namespace joymg
         public HexGridChunk chunk;
 
         public RectTransform uiRect;
+
+        //River Data
+        private bool hasIncomingRiver, hasOutgoingRiver;
+        private HexDirection incomingRiver, outgoingRiver;
 
         public HexCoordinates Coordinates { get => coordinates; set => coordinates = value; }
         public Color Color 
@@ -61,6 +66,14 @@ namespace joymg
             }
         }
 
+        public bool HasIncomingRiver { get => hasIncomingRiver; }
+        public bool HasOutgoingRiver { get => hasOutgoingRiver; }
+        public HexDirection IncomingRiver { get => incomingRiver; }
+        public HexDirection OutgoingRiver { get => outgoingRiver; }
+        public bool HasRiver { get => hasIncomingRiver || hasOutgoingRiver; }
+        public bool HasRiverStartOrEnd { get => hasIncomingRiver != hasOutgoingRiver; }
+        
+
         void Refresh()
         {
             if (chunk)
@@ -75,6 +88,13 @@ namespace joymg
                     }
                 }
             }
+        }
+
+
+        private void RefreshSelfOnly()
+        {
+            //no need to check for chunk as no rivers are changin when inicializing the map
+            chunk.Refresh();
         }
 
         public HexCell GetNeighbor(HexDirection direction)
@@ -101,5 +121,81 @@ namespace joymg
                 elevation, otherCell.elevation
             );
         }
+
+        public bool HasRiverThroughEdge(HexDirection direction)
+        {
+            return
+                hasIncomingRiver && incomingRiver == direction ||
+                hasOutgoingRiver && outgoingRiver == direction;
+        }
+
+        #region Creating Rivers
+
+        public void SetOutgoingRiver(HexDirection direction)
+        {
+            if (hasOutgoingRiver && outgoingRiver == direction)
+            {
+                return;
+            }
+
+            HexCell neighbor = GetNeighbor(direction);
+            //rivers can not go uphill
+            if (!neighbor || elevation < neighbor.elevation)
+            {
+                return;
+            }
+
+            RemoveOutgoingRiver();
+            if (hasIncomingRiver && incomingRiver == direction)
+            {
+                RemoveIncomingRiver();
+            }
+
+            hasOutgoingRiver = true;
+            outgoingRiver = direction;
+            RefreshSelfOnly();
+
+            neighbor.RemoveIncomingRiver();
+            neighbor.hasIncomingRiver = true;
+            neighbor.incomingRiver = direction.Opposite();
+            neighbor.RefreshSelfOnly();
+        }
+
+        #endregion
+        #region Removing Rivers
+        public void RemoveIncomingRiver()
+        {
+            if (!hasIncomingRiver)
+            {
+                return;
+            }
+            hasIncomingRiver = false;
+            RefreshSelfOnly();
+
+            HexCell neighbor = GetNeighbor(incomingRiver);
+            neighbor.hasOutgoingRiver = false;
+            neighbor.RefreshSelfOnly();
+        }
+
+        public void RemoveRiver()
+        {
+            RemoveOutgoingRiver();
+            RemoveIncomingRiver();
+        }
+
+        public void RemoveOutgoingRiver()
+        {
+            if (!hasOutgoingRiver)
+            {
+                return;
+            }
+            hasOutgoingRiver = false;
+            RefreshSelfOnly();
+
+            HexCell neighbor = GetNeighbor(outgoingRiver);
+            neighbor.hasIncomingRiver = false;
+            neighbor.RefreshSelfOnly();
+        }
+        #endregion
     }
 }
