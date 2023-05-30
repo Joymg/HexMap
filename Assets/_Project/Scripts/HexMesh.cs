@@ -61,7 +61,7 @@ namespace joymg
                 if (hexCell.HasRiverThroughEdge(direction))
                 {
                     edge.v3.y = hexCell.StreamBedY;
-                    if (hexCell.HasRiverStartOrEnd) 
+                    if (hexCell.HasRiverStartOrEnd)
                     {
                         TriangulateWithRiverStartOrEnd(direction, hexCell, center, edge);
                     }
@@ -85,8 +85,29 @@ namespace joymg
 
         private void TriangulateWithRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
         {
-            Vector3 centerLeft = center + HexMetrics.GetFirstSolidCorner(direction.Previous()) * 0.25f;
-            Vector3 centerRight = center + HexMetrics.GetSecondSolidCorner(direction.Next()) * .25f;
+            Vector3 centerLeft, centerRight;
+            if (hexCell.HasRiverThroughEdge(direction.Opposite()))
+            {
+                centerLeft = center + HexMetrics.GetFirstSolidCorner(direction.Previous()) * 0.25f;
+                centerRight = center + HexMetrics.GetSecondSolidCorner(direction.Next()) * .25f;
+            }
+
+            else if (hexCell.HasRiverThroughEdge(direction.Next()))
+            {
+                centerRight = Vector3.Lerp(center, edge.v5, 2f / 3f);
+                centerLeft = center;
+            }
+            else if (hexCell.HasRiverThroughEdge(direction.Previous()))
+            {
+                centerLeft = Vector3.Lerp(center, edge.v1, 2f / 3f);
+                centerRight = center;
+            }
+            else
+            {
+                centerLeft = centerRight = center;
+            }
+
+            center = Vector3.Lerp(centerLeft, centerRight, 0.5f);
 
             EdgeVertices middleEdge = new EdgeVertices(Vector3.Lerp(centerLeft, edge.v1, 0.5f), Vector3.Lerp(centerRight, edge.v5, 0.5f), 1f / 6f);
             middleEdge.v3.y = center.y = edge.v3.y;
