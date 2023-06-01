@@ -8,7 +8,7 @@ namespace joymg
 
         private HexCell[] cells;
 
-        public HexMesh terrain, rivers;
+        public HexMesh terrain, rivers, roads;
         private Canvas gridCanvas;
 
         private void Awake()
@@ -47,12 +47,14 @@ namespace joymg
         {
             terrain.Clear();
             rivers.Clear();
+            roads.Clear();
             for (int i = 0; i < cells.Length; i++)
             {
                 Triangulate(cells[i]);
             }
             terrain.Apply();
             rivers.Apply();
+            roads.Apply();
         }
 
         private void Triangulate(HexCell hexCell)
@@ -256,11 +258,11 @@ namespace joymg
 
             if (hexCell.GetEdgeType(direction) == HexEdgeType.Slope)
             {
-                TriangulateEdgeTerraces(edge, hexCell, edge2, neighbor);
+                TriangulateEdgeTerraces(edge, hexCell, edge2, neighbor, hexCell.HasRoadThroughEdge(direction));
             }
             else
             {
-                TriangulateEdgeStrip(edge, hexCell.Color, edge2, neighbor.Color);
+                TriangulateEdgeStrip(edge, hexCell.Color, edge2, neighbor.Color, hexCell.HasRoadThroughEdge(direction));
             }
 
             HexCell nextNeighbor = hexCell.GetNeighbor(direction.Next());
@@ -297,12 +299,12 @@ namespace joymg
         }
 
         private void TriangulateEdgeTerraces(EdgeVertices begin,
-            HexCell beginCell, EdgeVertices end, HexCell endCell)
+            HexCell beginCell, EdgeVertices end, HexCell endCell, bool hasRoads)
         {
             EdgeVertices edge2 = EdgeVertices.TerraceLerp(begin, end, 1);
             Color c2 = HexMetrics.TerraceLerp(beginCell.Color, endCell.Color, 1);
 
-            TriangulateEdgeStrip(begin, beginCell.Color, edge2, c2);
+            TriangulateEdgeStrip(begin, beginCell.Color, edge2, c2, hasRoads);
 
             for (int i = 2; i < HexMetrics.terraceSteps; i++)
             {
@@ -310,10 +312,10 @@ namespace joymg
                 Color c1 = c2;
                 edge2 = EdgeVertices.TerraceLerp(begin, end, i);
                 c2 = HexMetrics.TerraceLerp(beginCell.Color, endCell.Color, i);
-                TriangulateEdgeStrip(edge, c1, edge2, c2);
+                TriangulateEdgeStrip(edge, c1, edge2, c2, hasRoads);
             }
 
-            TriangulateEdgeStrip(edge2, c2, end, endCell.Color);
+            TriangulateEdgeStrip(edge2, c2, end, endCell.Color, hasRoads);
         }
 
         private void TriangulateCorner(
@@ -497,18 +499,33 @@ namespace joymg
         }
 
         private void TriangulateEdgeStrip(
-            EdgeVertices e1, Color c1,
-            EdgeVertices e2, Color c2
+            EdgeVertices edge, Color c1,
+            EdgeVertices edge2, Color c2,
+            bool hasRoad = false
         )
         {
-            terrain.AddQuad(e1.v1, e1.v2, e2.v1, e2.v2);
+            terrain.AddQuad(edge.v1, edge.v2, edge2.v1, edge2.v2);
             terrain.AddQuadColor(c1, c2);
-            terrain.AddQuad(e1.v2, e1.v3, e2.v2, e2.v3);
+            terrain.AddQuad(edge.v2, edge.v3, edge2.v2, edge2.v3);
             terrain.AddQuadColor(c1, c2);
-            terrain.AddQuad(e1.v3, e1.v4, e2.v3, e2.v4);
+            terrain.AddQuad(edge.v3, edge.v4, edge2.v3, edge2.v4);
             terrain.AddQuadColor(c1, c2);
-            terrain.AddQuad(e1.v4, e1.v5, e2.v4, e2.v5);
+            terrain.AddQuad(edge.v4, edge.v5, edge2.v4, edge2.v5);
             terrain.AddQuadColor(c1, c2);
+
+            if (hasRoad)
+            {
+                //EdgeVertices is made of 5 vertices, so the 3 in the middle for each edge are selected
+                TriangulateRoadSegment(edge.v2, edge.v3, edge.v4, edge2.v2, edge2.v3, edge2.v4);
+            }
+        }
+
+        private void TriangulateRoadSegment(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector3 v5, Vector3 v6)
+        {
+            roads.AddQuad(v1, v2, v4, v5);
+            roads.AddQuad(v2, v3, v5, v6);
+            roads.AddQuadUV(0f, 1f, 0f, 0f);
+            roads.AddQuadUV(1f, 0f, 0f, 0f);
         }
     }
 }
