@@ -24,7 +24,7 @@ namespace joymg
         public const float verticalTerraceStepSize = 1f / (terracesPerSlope + 1);
 
         public static Texture2D noiseSource;
-        public const float cellPerturbationStrength = 0f;
+        public const float cellPerturbationStrength = 4f;
         public const float noiseScale = 0.003f;
         public const float elevationPerturbationStrength = 1.5f;
 
