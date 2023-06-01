@@ -106,6 +106,11 @@ namespace joymg
 
         private void TriangulateAdjacentToRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
         {
+            if (hexCell.HasRoads)
+            {
+                TriangulateRoadAdjacentToRiver(direction, hexCell, center, edge);
+            }
+
             if (hexCell.HasRiverThroughEdge(direction.Next()))
             {
                 if (hexCell.HasRiverThroughEdge(direction.Previous()))
@@ -550,6 +555,16 @@ namespace joymg
             {
                 TriangulateRoadEdge(center, middleLeft, middleRight);
             }
+        }
+
+        void TriangulateRoadAdjacentToRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
+        {
+            bool hasRoadThroughEdge = hexCell.HasRoadThroughEdge(direction);
+            Vector2 interpolators = GetRoadInterpolators(direction, hexCell);
+            Vector3 roadCenter = center;
+            Vector3 middleLeft = Vector3.Lerp(center, edge.v1, interpolators.x);
+            Vector3 middleRight = Vector3.Lerp(center, edge.v5, interpolators.y);
+            TriangulateRoad(roadCenter, middleLeft, middleRight, edge, hasRoadThroughEdge);
         }
 
         private void TriangulateRoadSegment(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector3 v5, Vector3 v6)
