@@ -94,7 +94,7 @@ namespace joymg
             }
             else
             {
-                TriangulateEdgeFan(center, edge, hexCell.Color);
+                TriangulateWithoutRiver(direction, hexCell, center, edge);
             }
 
 
@@ -208,6 +208,20 @@ namespace joymg
                 rivers.AddTriangleUV(
                     new Vector2(0.5f, 0.4f), new Vector2(0f, .6f), new Vector2(1f, 0.6f)
                 );
+            }
+        }
+
+        private void TriangulateWithoutRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
+        {
+            TriangulateEdgeFan(center, edge, hexCell.Color);
+
+            if (hexCell.HasRoads)
+            {
+                TriangulateRoad(center,
+                    Vector3.Lerp(center, edge.v1, 0.5f),
+                    Vector3.Lerp(center, edge.v5, 0.5f),
+                    edge,
+                    hexCell.HasRoadThroughEdge(direction));
             }
         }
 
@@ -520,12 +534,35 @@ namespace joymg
             }
         }
 
+        private void TriangulateRoad(Vector3 center, Vector3 middleLeft, Vector3 middleRight, EdgeVertices edge, bool hasRoadThroughCellEdge)
+        {
+            if (hasRoadThroughCellEdge)
+            {
+                Vector3 middleCenter = Vector3.Lerp(middleLeft, middleRight, 0.5f);
+                TriangulateRoadSegment(middleLeft, middleCenter, middleRight, edge.v2, edge.v3, edge.v4);
+                roads.AddTriangle(center, middleLeft, middleCenter);
+                roads.AddTriangle(center, middleCenter, middleRight);
+                roads.AddTriangleUV(new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(1f, 0f));
+                roads.AddTriangleUV(new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(0f, 0f));
+            }
+            else
+            {
+                TriangulateRoadEdge(center, middleLeft, middleRight);
+            }
+        }
+
         private void TriangulateRoadSegment(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector3 v5, Vector3 v6)
         {
             roads.AddQuad(v1, v2, v4, v5);
             roads.AddQuad(v2, v3, v5, v6);
             roads.AddQuadUV(0f, 1f, 0f, 0f);
             roads.AddQuadUV(1f, 0f, 0f, 0f);
+        }
+
+        private void TriangulateRoadEdge(Vector3 center, Vector3 middleLeft, Vector3 middleRight)
+        {
+            roads.AddTriangle(center, middleLeft, middleRight);
+            roads.AddTriangleUV(new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f));
         }
     }
 }
