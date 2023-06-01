@@ -594,6 +594,51 @@ namespace joymg
                 roadCenter += corner * 0.5f;
                 center += corner * 0.25f;
             }
+            //curved river
+            else if (hexCell.IncomingRiver == hexCell.OutgoingRiver.Previous())
+            {
+                roadCenter -= HexMetrics.GetSecondSolidCorner(hexCell.IncomingRiver) * 0.2f;
+            }
+            else if (hexCell.IncomingRiver == hexCell.OutgoingRiver.Next())
+            {
+                roadCenter -= HexMetrics.GetFirstSolidCorner(hexCell.IncomingRiver) * 0.2f;
+            }
+            else if (previousHasRiver && nextHasRiver)
+            {
+                //prune roads triangulated across riverside outside to inside
+                if (!hasRoadThroughEdge)
+                {
+                    return;
+                }
+                Vector3 offset = HexMetrics.GetSolidEdgeMiddle(direction) * HexMetrics.innerToOuter;
+                roadCenter += offset * 0.7f;
+                center += offset * 0.5f;
+            }
+            else
+            {
+                HexDirection middle;
+                if (previousHasRiver)
+                {
+                    middle = direction.Next();
+                }
+                else if (nextHasRiver)
+                {
+                    middle = direction.Previous();
+                }
+                else
+                {
+                    middle = direction;
+                }
+                //prune roads triangulated across riverside from inside to ouside 
+                if (!hexCell.HasRoadThroughEdge(middle) &&
+                    !hexCell.HasRoadThroughEdge(middle.Previous()) &&
+                    !hexCell.HasRoadThroughEdge(middle.Next()))
+                {
+
+                }
+
+                roadCenter += HexMetrics.GetSolidEdgeMiddle(middle) * 0.25f;
+            }
 
             Vector3 middleLeft = Vector3.Lerp(roadCenter, edge.v1, interpolators.x);
             Vector3 middleRight = Vector3.Lerp(roadCenter, edge.v5, interpolators.y);
