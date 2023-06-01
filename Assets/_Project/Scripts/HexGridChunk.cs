@@ -217,9 +217,10 @@ namespace joymg
 
             if (hexCell.HasRoads)
             {
+                Vector2 interpolators = GetRoadInterpolators(direction, hexCell);
                 TriangulateRoad(center,
-                    Vector3.Lerp(center, edge.v1, 0.5f),
-                    Vector3.Lerp(center, edge.v5, 0.5f),
+                    Vector3.Lerp(center, edge.v1, interpolators.x),
+                    Vector3.Lerp(center, edge.v5, interpolators.y),
                     edge,
                     hexCell.HasRoadThroughEdge(direction));
             }
@@ -563,6 +564,21 @@ namespace joymg
         {
             roads.AddTriangle(center, middleLeft, middleRight);
             roads.AddTriangleUV(new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f));
+        }
+
+        private Vector2 GetRoadInterpolators(HexDirection direction, HexCell hexCell)
+        {
+            Vector2 interpolators;
+            if (hexCell.HasRoadThroughEdge(direction))
+            {
+                interpolators.x = interpolators.y = 0.5f;
+            }
+            else
+            {
+                interpolators.x = hexCell.HasRoadThroughEdge(direction.Previous()) ? 0.5f : 0.25f;
+                interpolators.y = hexCell.HasRoadThroughEdge(direction.Next()) ? 0.5f : 0.25f;
+            }
+            return interpolators;
         }
     }
 }
