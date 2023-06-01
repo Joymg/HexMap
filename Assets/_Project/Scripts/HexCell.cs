@@ -73,6 +73,14 @@ namespace joymg
                     RemoveIncomingRiver();
                 }
 
+                for (int direction = 0; direction < roads.Length; direction++)
+                {
+                    if (roads[direction] && GetElevationDifference((HexDirection)direction) > 1)
+                    {
+                        SetRoad(direction, false);
+                    }
+                }
+
                 Refresh();
             }
         }
@@ -157,6 +165,12 @@ namespace joymg
             );
         }
 
+        public int GetElevationDifference(HexDirection direction)
+        {
+            int difference = elevation - GetNeighbor(direction).elevation;
+            return difference >= 0 ? difference : -difference;
+        }
+
         public bool HasRiverThroughEdge(HexDirection direction)
         {
             return
@@ -169,7 +183,7 @@ namespace joymg
             return roads[(int)direction];
         }
 
-        #region Creating Rivers
+        #region Create Rivers
 
         public void SetOutgoingRiver(HexDirection direction)
         {
@@ -193,16 +207,17 @@ namespace joymg
 
             hasOutgoingRiver = true;
             outgoingRiver = direction;
-            RefreshSelfOnly();
 
             neighbor.RemoveIncomingRiver();
             neighbor.hasIncomingRiver = true;
             neighbor.incomingRiver = direction.Opposite();
-            neighbor.RefreshSelfOnly();
+
+            //Rivers disallow roads, so removing the road refresh the mesh, own and neighbor's
+            SetRoad((int)direction, false);
         }
 
         #endregion
-        #region Removing Rivers
+        #region Remove Rivers
         public void RemoveIncomingRiver()
         {
             if (!hasIncomingRiver)
@@ -237,5 +252,35 @@ namespace joymg
             neighbor.RefreshSelfOnly();
         }
         #endregion
+
+
+
+        public void AddRoad(HexDirection direction)
+        {
+            if (!roads[(int)direction] &&
+                !HasRiverThroughEdge(direction) &&
+                GetElevationDifference(direction) <= 1)
+            {
+                SetRoad((int)direction, true);
+            }
+        }
+
+        public void RemoveRoads()
+        {
+            for (int direction = 0; direction < neighbors.Length; direction++)
+            {
+                if (roads[direction])
+                {
+                    SetRoad(direction, false);
+                }
+            }
+        }
+        private void SetRoad(int direction, bool state)
+        {
+            roads[direction] = state;
+            neighbors[direction].roads[(int)((HexDirection)direction).Opposite()] = state;
+            neighbors[direction].RefreshSelfOnly();
+            RefreshSelfOnly();
+        }
     }
 }
