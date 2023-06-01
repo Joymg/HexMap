@@ -13,6 +13,8 @@ namespace joymg
         [SerializeField]
         private HexCell[] neighbors;
         public HexGridChunk chunk;
+        [SerializeField]
+        private bool[] roads;
 
         public RectTransform uiRect;
 
@@ -83,6 +85,7 @@ namespace joymg
 
         }
 
+        //River properties
         public bool HasIncomingRiver { get => hasIncomingRiver; }
         public bool HasOutgoingRiver { get => hasOutgoingRiver; }
         public HexDirection IncomingRiver { get => incomingRiver; }
@@ -90,6 +93,21 @@ namespace joymg
         public bool HasRiver { get => hasIncomingRiver || hasOutgoingRiver; }
         public bool HasRiverStartOrEnd { get => hasIncomingRiver != hasOutgoingRiver; }
 
+        //Road Properties
+        public bool HasRoads
+        {
+            get
+            {
+                for (int i = 0; i < roads.Length; i++)
+                {
+                    if (roads[i])
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
 
         void Refresh()
         {
@@ -144,6 +162,11 @@ namespace joymg
             return
                 hasIncomingRiver && incomingRiver == direction ||
                 hasOutgoingRiver && outgoingRiver == direction;
+        }
+
+        public bool HasRoadThroughEdge(HexDirection direction)
+        {
+            return roads[(int)direction];
         }
 
         #region Creating Rivers
