@@ -13,6 +13,8 @@ namespace joymg
         [SerializeField]
         private HexCell[] neighbors;
         public HexGridChunk chunk;
+        [SerializeField]
+        private bool[] roads;
 
         public RectTransform uiRect;
 
@@ -71,6 +73,14 @@ namespace joymg
                     RemoveIncomingRiver();
                 }
 
+                for (int direction = 0; direction < roads.Length; direction++)
+                {
+                    if (roads[direction] && GetElevationDifference((HexDirection)direction) > 1)
+                    {
+                        SetRoad(direction, false);
+                    }
+                }
+
                 Refresh();
             }
         }
@@ -83,6 +93,7 @@ namespace joymg
 
         }
 
+        //River properties
         public bool HasIncomingRiver { get => hasIncomingRiver; }
         public bool HasOutgoingRiver { get => hasOutgoingRiver; }
         public HexDirection IncomingRiver { get => incomingRiver; }
@@ -90,6 +101,21 @@ namespace joymg
         public bool HasRiver { get => hasIncomingRiver || hasOutgoingRiver; }
         public bool HasRiverStartOrEnd { get => hasIncomingRiver != hasOutgoingRiver; }
 
+        //Road Properties
+        public bool HasRoads
+        {
+            get
+            {
+                for (int i = 0; i < roads.Length; i++)
+                {
+                    if (roads[i])
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
 
         void Refresh()
         {
@@ -139,14 +165,26 @@ namespace joymg
             );
         }
 
+        public int GetElevationDifference(HexDirection direction)
+        {
+            int difference = elevation - GetNeighbor(direction).elevation;
+            return difference >= 0 ? difference : -difference;
+        }
+
         public bool HasRiverThroughEdge(HexDirection direction)
         {
             return
                 hasIncomingRiver && incomingRiver == direction ||
                 hasOutgoingRiver && outgoingRiver == direction;
         }
+        public HexDirection RiverStartOrEndDirection { get => hasIncomingRiver ? incomingRiver : outgoingRiver; }
 
-        #region Creating Rivers
+        public bool HasRoadThroughEdge(HexDirection direction)
+        {
+            return roads[(int)direction];
+        }
+
+        #region Create Rivers
 
         public void SetOutgoingRiver(HexDirection direction)
         {
@@ -170,16 +208,17 @@ namespace joymg
 
             hasOutgoingRiver = true;
             outgoingRiver = direction;
-            RefreshSelfOnly();
 
             neighbor.RemoveIncomingRiver();
             neighbor.hasIncomingRiver = true;
             neighbor.incomingRiver = direction.Opposite();
-            neighbor.RefreshSelfOnly();
+
+            //Rivers disallow roads, so removing the road refresh the mesh, own and neighbor's
+            SetRoad((int)direction, false);
         }
 
         #endregion
-        #region Removing Rivers
+        #region Remove Rivers
         public void RemoveIncomingRiver()
         {
             if (!hasIncomingRiver)
@@ -214,5 +253,35 @@ namespace joymg
             neighbor.RefreshSelfOnly();
         }
         #endregion
+
+
+
+        public void AddRoad(HexDirection direction)
+        {
+            if (!roads[(int)direction] &&
+                !HasRiverThroughEdge(direction) &&
+                GetElevationDifference(direction) <= 1)
+            {
+                SetRoad((int)direction, true);
+            }
+        }
+
+        public void RemoveRoads()
+        {
+            for (int direction = 0; direction < neighbors.Length; direction++)
+            {
+                if (roads[direction])
+                {
+                    SetRoad(direction, false);
+                }
+            }
+        }
+        private void SetRoad(int direction, bool state)
+        {
+            roads[direction] = state;
+            neighbors[direction].roads[(int)((HexDirection)direction).Opposite()] = state;
+            neighbors[direction].RefreshSelfOnly();
+            RefreshSelfOnly();
+        }
     }
 }
