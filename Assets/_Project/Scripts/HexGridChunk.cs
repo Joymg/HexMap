@@ -560,11 +560,53 @@ namespace joymg
         void TriangulateRoadAdjacentToRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
         {
             bool hasRoadThroughEdge = hexCell.HasRoadThroughEdge(direction);
+            bool previousHasRiver = hexCell.HasRiverThroughEdge(direction.Previous());
+            bool nextHasRiver = hexCell.HasRiverThroughEdge(direction.Next());
             Vector2 interpolators = GetRoadInterpolators(direction, hexCell);
             Vector3 roadCenter = center;
-            Vector3 middleLeft = Vector3.Lerp(center, edge.v1, interpolators.x);
-            Vector3 middleRight = Vector3.Lerp(center, edge.v5, interpolators.y);
+
+            if (hexCell.HasRiverStartOrEnd)
+            {
+                roadCenter += HexMetrics.GetSolidEdgeMiddle(hexCell.RiverStartOrEndDirection.Opposite()) * (1f / 3f);
+            }
+            //Checking for a straight river
+            else if (hexCell.IncomingRiver == hexCell.OutgoingRiver.Opposite())
+            {
+                Vector3 corner;
+                if (previousHasRiver)
+                {
+                    //checking if there is road at the other side of a straight river
+                    if (!hasRoadThroughEdge && !hexCell.HasRoadThroughEdge(direction.Next()))
+                    {
+                        return;
+                    }
+                    corner = HexMetrics.GetSecondSolidCorner(direction);
+                }
+                else
+                {
+                    //checking if there is road at the other side of a straight river
+                    if (!hasRoadThroughEdge && !hexCell.HasRoadThroughEdge(direction.Previous()))
+                    {
+                        return;
+                    }
+                    corner = HexMetrics.GetFirstSolidCorner(direction);
+                }
+                roadCenter += corner * 0.5f;
+                center += corner * 0.25f;
+            }
+
+            Vector3 middleLeft = Vector3.Lerp(roadCenter, edge.v1, interpolators.x);
+            Vector3 middleRight = Vector3.Lerp(roadCenter, edge.v5, interpolators.y);
             TriangulateRoad(roadCenter, middleLeft, middleRight, edge, hasRoadThroughEdge);
+
+            if (previousHasRiver)
+            {
+                TriangulateRoadEdge(roadCenter, center, middleLeft);
+            }
+            if (nextHasRiver)
+            {
+                TriangulateRoadEdge(roadCenter, middleRight, center);
+            }
         }
 
         private void TriangulateRoadSegment(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4, Vector3 v5, Vector3 v6)

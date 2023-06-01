@@ -177,6 +177,7 @@ namespace joymg
                 hasIncomingRiver && incomingRiver == direction ||
                 hasOutgoingRiver && outgoingRiver == direction;
         }
+        public HexDirection RiverStartOrEndDirection { get => hasIncomingRiver ? incomingRiver : outgoingRiver; }
 
         public bool HasRoadThroughEdge(HexDirection direction)
         {
