@@ -694,19 +694,27 @@ namespace joymg
         void TriangulateWater(HexDirection direction, HexCell hexCell, Vector3 center)
         {
             center.y = hexCell.WaterSurfaceY;
+
+            HexCell neighbor = hexCell.GetNeighbor(direction);
+            if (neighbor != null && !neighbor.IsUnderwater)
+            {
+                TriangulateWaterShore(direction, hexCell, neighbor, center);
+            }
+            else
+            {
+                TriangulateOpenWater(direction, hexCell, neighbor, center);
+            }
+        }
+
+        private void TriangulateOpenWater(HexDirection direction, HexCell hexCell, HexCell neighbor, Vector3 center)
+        {
             Vector3 center1 = center + HexMetrics.GetFirstSolidCorner(direction);
             Vector3 center2 = center + HexMetrics.GetSecondSolidCorner(direction);
 
             water.AddTriangle(center, center1, center2);
 
-            if (direction <= HexDirection.SE)
+            if (direction <= HexDirection.SE && neighbor != null)
             {
-                HexCell neighbor = hexCell.GetNeighbor(direction);
-                if (neighbor == null || !neighbor.IsUnderwater)
-                {
-                    return;
-                }
-
                 Vector3 bridge = HexMetrics.GetBridge(direction);
                 Vector3 edge = center1 + bridge;
                 Vector3 edge2 = center2 + bridge;
@@ -720,8 +728,39 @@ namespace joymg
                     {
                         return;
                     }
-                    water.AddTriangle(center2,edge2,center2 + HexMetrics.GetBridge(direction.Next()));
+                    water.AddTriangle(center2, edge2, center2 + HexMetrics.GetBridge(direction.Next()));
                 }
+            }
+        }
+
+        private void TriangulateWaterShore(HexDirection direction, HexCell hexCell, HexCell neighbor, Vector3 center)
+        {
+            EdgeVertices edge = new EdgeVertices(
+                center + HexMetrics.GetFirstSolidCorner(direction),
+                center + HexMetrics.GetSecondSolidCorner(direction)
+            );
+
+            water.AddTriangle(center, edge.v1, edge.v2);
+            water.AddTriangle(center, edge.v2, edge.v3);
+            water.AddTriangle(center, edge.v3, edge.v4);
+            water.AddTriangle(center, edge.v4, edge.v5);
+
+            Vector3 bridge = HexMetrics.GetBridge(direction);
+            EdgeVertices e2 = new EdgeVertices(
+                edge.v1 + bridge,
+                edge.v5 + bridge
+            );
+            water.AddQuad(edge.v1, edge.v2, e2.v1, e2.v2);
+            water.AddQuad(edge.v2, edge.v3, e2.v2, e2.v3);
+            water.AddQuad(edge.v3, edge.v4, e2.v3, e2.v4);
+            water.AddQuad(edge.v4, edge.v5, e2.v4, e2.v5);
+
+            HexCell nextNeighbor = hexCell.GetNeighbor(direction.Next());
+            if (nextNeighbor != null)
+            {
+                water.AddTriangle(
+                    edge.v5, e2.v5, edge.v5 + HexMetrics.GetBridge(direction.Next())
+                );
             }
         }
     }

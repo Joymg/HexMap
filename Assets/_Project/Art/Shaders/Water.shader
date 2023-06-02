@@ -24,6 +24,7 @@ Shader "Custom/Water"
         struct Input
         {
             float2 uv_MainTex;
+            float3 worldPos;
         };
 
         half _Glossiness;
@@ -39,8 +40,21 @@ Shader "Custom/Water"
 
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
+            float2 uv = IN.worldPos.xz;
+            uv.y += _Time.y;
+            float4 noise1 = tex2D(_MainTex, uv * 0.025);
+
+            float2 uv2 = IN.worldPos.xz;
+            uv2.x += _Time.y;
+            float4 noise2 = tex2D(_MainTex, uv2 * 0.025);
+
+            float blendWaves = sin((IN.worldPos.x + IN.worldPos.z) * 0.1 + (noise1.y + noise2.z) + _Time.y);
+            blendWaves *= blendWaves;
+
+            float waves = lerp(noise1.z, noise1.w, blendWaves) + lerp(noise2.x, noise2.y, blendWaves);
+            waves = smoothstep(0.75, 2, waves);
             // Albedo comes from a texture tinted by color
-            fixed4 c = _Color;
+            fixed4 c = saturate(_Color + waves) ;
             o.Albedo = c.rgb;
             // Metallic and smoothness come from slider variables
             o.Metallic = _Metallic;
