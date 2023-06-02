@@ -9,6 +9,7 @@ namespace joymg
         private HexCoordinates coordinates;
         private Color color;
         private int elevation = int.MinValue;
+        private int waterLevel;
 
         [SerializeField]
         private HexCell[] neighbors;
@@ -85,13 +86,23 @@ namespace joymg
             }
         }
 
-        public float StreamBedY { get => (elevation + HexMetrics.streamBedElevationOffset) * HexMetrics.elevationStep; }
-        public float RiverSurfaceY
+        public int WaterLevel
         {
-            get => (elevation + HexMetrics.riverSurfaceElevationOffset) *
-                    HexMetrics.elevationStep;
-
+            get => waterLevel;
+            set
+            {
+                if (waterLevel == value)
+                {
+                    return;
+                }
+                waterLevel = value;
+                Refresh();
+            }
         }
+
+        public float StreamBedY { get => (elevation + HexMetrics.streamBedElevationOffset) * HexMetrics.elevationStep; }
+        public float RiverSurfaceY => (elevation + HexMetrics.waterElevationOffset) * HexMetrics.elevationStep;
+        public float WaterSurfaceY => (waterLevel + HexMetrics.waterElevationOffset) * HexMetrics.elevationStep;
 
         //River properties
         public bool HasIncomingRiver { get => hasIncomingRiver; }
@@ -117,7 +128,10 @@ namespace joymg
             }
         }
 
-        void Refresh()
+        public bool IsUnderWater => waterLevel > elevation;
+
+
+        private void Refresh()
         {
             if (chunk)
             {
