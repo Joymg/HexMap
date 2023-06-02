@@ -8,7 +8,7 @@ namespace joymg
 
         private HexCell[] cells;
 
-        public HexMesh terrain, rivers, roads;
+        public HexMesh terrain, rivers, roads, water;
         private Canvas gridCanvas;
 
         private void Awake()
@@ -48,6 +48,7 @@ namespace joymg
             terrain.Clear();
             rivers.Clear();
             roads.Clear();
+            water.Clear();
             for (int i = 0; i < cells.Length; i++)
             {
                 Triangulate(cells[i]);
@@ -55,6 +56,7 @@ namespace joymg
             terrain.Apply();
             rivers.Apply();
             roads.Apply();
+            water.Apply();
         }
 
         private void Triangulate(HexCell hexCell)
@@ -101,6 +103,11 @@ namespace joymg
             if (direction <= HexDirection.SE)
             {
                 TriangulateConnection(direction, hexCell, edge);
+            }
+
+            if (hexCell.IsUnderwater)
+            {
+                TriangulateWater(direction, hexCell, center);
             }
         }
 
@@ -681,6 +688,41 @@ namespace joymg
                 interpolators.y = hexCell.HasRoadThroughEdge(direction.Next()) ? 0.5f : 0.25f;
             }
             return interpolators;
+        }
+
+
+        void TriangulateWater(HexDirection direction, HexCell hexCell, Vector3 center)
+        {
+            center.y = hexCell.WaterSurfaceY;
+            Vector3 center1 = center + HexMetrics.GetFirstSolidCorner(direction);
+            Vector3 center2 = center + HexMetrics.GetSecondSolidCorner(direction);
+
+            water.AddTriangle(center, center1, center2);
+
+            if (direction <= HexDirection.SE)
+            {
+                HexCell neighbor = hexCell.GetNeighbor(direction);
+                if (neighbor == null || !neighbor.IsUnderwater)
+                {
+                    return;
+                }
+
+                Vector3 bridge = HexMetrics.GetBridge(direction);
+                Vector3 edge = center1 + bridge;
+                Vector3 edge2 = center2 + bridge;
+
+                water.AddQuad(center1, center2, edge, edge2);
+
+                if (direction <= HexDirection.E)
+                {
+                    HexCell nextNeighbor = hexCell.GetNeighbor(direction.Next());
+                    if (nextNeighbor == null || !nextNeighbor.IsUnderwater)
+                    {
+                        return;
+                    }
+                    water.AddTriangle(center2,edge2,center2 + HexMetrics.GetBridge(direction.Next()));
+                }
+            }
         }
     }
 }

@@ -22,7 +22,7 @@ namespace joymg
         private bool applyElevation = true;
         private int currentElevation;
 
-        private bool applyWaterLevel;
+        private bool applyWaterLevel = true;
         private int currentWaterLevel;
 
         private int brushSize;

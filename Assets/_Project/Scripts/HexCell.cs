@@ -128,7 +128,7 @@ namespace joymg
             }
         }
 
-        public bool IsUnderWater => waterLevel > elevation;
+        public bool IsUnderwater => waterLevel > elevation;
 
 
         private void Refresh()
