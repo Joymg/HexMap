@@ -710,14 +710,14 @@ namespace joymg
 
         private void TriangulateOpenWater(HexDirection direction, HexCell hexCell, HexCell neighbor, Vector3 center)
         {
-            Vector3 center1 = center + HexMetrics.GetFirstSolidCorner(direction);
-            Vector3 center2 = center + HexMetrics.GetSecondSolidCorner(direction);
+            Vector3 center1 = center + HexMetrics.GetFirstWaterCorner(direction);
+            Vector3 center2 = center + HexMetrics.GetSecondWaterCorner(direction);
 
             water.AddTriangle(center, center1, center2);
 
             if (direction <= HexDirection.SE && neighbor != null)
             {
-                Vector3 bridge = HexMetrics.GetBridge(direction);
+                Vector3 bridge = HexMetrics.GetWaterBridge(direction);
                 Vector3 edge = center1 + bridge;
                 Vector3 edge2 = center2 + bridge;
 
@@ -730,7 +730,7 @@ namespace joymg
                     {
                         return;
                     }
-                    water.AddTriangle(center2, edge2, center2 + HexMetrics.GetBridge(direction.Next()));
+                    water.AddTriangle(center2, edge2, center2 + HexMetrics.GetWaterBridge(direction.Next()));
                 }
             }
         }
@@ -738,8 +738,8 @@ namespace joymg
         private void TriangulateWaterShore(HexDirection direction, HexCell hexCell, HexCell neighbor, Vector3 center)
         {
             EdgeVertices edge = new EdgeVertices(
-                center + HexMetrics.GetFirstSolidCorner(direction),
-                center + HexMetrics.GetSecondSolidCorner(direction)
+                center + HexMetrics.GetFirstWaterCorner(direction),
+                center + HexMetrics.GetSecondWaterCorner(direction)
             );
 
             water.AddTriangle(center, edge.v1, edge.v2);
@@ -747,7 +747,7 @@ namespace joymg
             water.AddTriangle(center, edge.v3, edge.v4);
             water.AddTriangle(center, edge.v4, edge.v5);
 
-            Vector3 bridge = HexMetrics.GetBridge(direction);
+            Vector3 bridge = HexMetrics.GetWaterBridge(direction);
             EdgeVertices e2 = new EdgeVertices(
                 edge.v1 + bridge,
                 edge.v5 + bridge
@@ -765,7 +765,7 @@ namespace joymg
             if (nextNeighbor != null)
             {
                 waterShore.AddTriangle(
-                    edge.v5, e2.v5, edge.v5 + HexMetrics.GetBridge(direction.Next())
+                    edge.v5, e2.v5, edge.v5 + HexMetrics.GetWaterBridge(direction.Next())
                 );
                 waterShore.AddTriangleUV(
                     new Vector2(0f, 0f),
