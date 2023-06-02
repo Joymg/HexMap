@@ -9,6 +9,7 @@ namespace joymg
         private HexCoordinates coordinates;
         private Color color;
         private int elevation = int.MinValue;
+        private int waterLevel;
 
         [SerializeField]
         private HexCell[] neighbors;
@@ -64,14 +65,7 @@ namespace joymg
                 uiPosition.z = -position.y;
                 uiRect.localPosition = uiPosition;
 
-                if (hasOutgoingRiver && elevation < GetNeighbor(outgoingRiver).elevation)
-                {
-                    RemoveOutgoingRiver();
-                }
-                if (hasIncomingRiver && elevation > GetNeighbor(incomingRiver).elevation)
-                {
-                    RemoveIncomingRiver();
-                }
+                ValidateRivers();
 
                 for (int direction = 0; direction < roads.Length; direction++)
                 {
@@ -85,13 +79,24 @@ namespace joymg
             }
         }
 
-        public float StreamBedY { get => (elevation + HexMetrics.streamBedElevationOffset) * HexMetrics.elevationStep; }
-        public float RiverSurfaceY
+        public int WaterLevel
         {
-            get => (elevation + HexMetrics.riverSurfaceElevationOffset) *
-                    HexMetrics.elevationStep;
-
+            get => waterLevel;
+            set
+            {
+                if (waterLevel == value)
+                {
+                    return;
+                }
+                waterLevel = value;
+                ValidateRivers();
+                Refresh();
+            }
         }
+
+        public float StreamBedY { get => (elevation + HexMetrics.streamBedElevationOffset) * HexMetrics.elevationStep; }
+        public float RiverSurfaceY => (elevation + HexMetrics.waterElevationOffset) * HexMetrics.elevationStep;
+        public float WaterSurfaceY => (waterLevel + HexMetrics.waterElevationOffset) * HexMetrics.elevationStep;
 
         //River properties
         public bool HasIncomingRiver { get => hasIncomingRiver; }
@@ -117,7 +122,17 @@ namespace joymg
             }
         }
 
-        void Refresh()
+        public bool IsUnderwater => waterLevel > elevation;
+
+        bool IsValidRiverDestination(HexCell neighbor)
+        {
+            return neighbor && (
+                elevation >= neighbor.elevation || waterLevel == neighbor.elevation
+            );
+        }
+
+
+        private void Refresh()
         {
             if (chunk)
             {
@@ -186,6 +201,18 @@ namespace joymg
 
         #region Create Rivers
 
+        private void ValidateRivers()
+        {
+            if (hasOutgoingRiver && !IsValidRiverDestination(GetNeighbor(outgoingRiver)))
+            {
+                RemoveOutgoingRiver();
+            }
+            if (hasIncomingRiver && !GetNeighbor(incomingRiver).IsValidRiverDestination(this))
+            {
+                RemoveIncomingRiver();
+            }
+        }
+
         public void SetOutgoingRiver(HexDirection direction)
         {
             if (hasOutgoingRiver && outgoingRiver == direction)
@@ -195,7 +222,7 @@ namespace joymg
 
             HexCell neighbor = GetNeighbor(direction);
             //rivers can not go uphill
-            if (!neighbor || elevation < neighbor.elevation)
+            if (!IsValidRiverDestination(neighbor))
             {
                 return;
             }
