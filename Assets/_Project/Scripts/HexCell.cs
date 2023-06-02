@@ -65,14 +65,7 @@ namespace joymg
                 uiPosition.z = -position.y;
                 uiRect.localPosition = uiPosition;
 
-                if (hasOutgoingRiver && elevation < GetNeighbor(outgoingRiver).elevation)
-                {
-                    RemoveOutgoingRiver();
-                }
-                if (hasIncomingRiver && elevation > GetNeighbor(incomingRiver).elevation)
-                {
-                    RemoveIncomingRiver();
-                }
+                ValidateRivers();
 
                 for (int direction = 0; direction < roads.Length; direction++)
                 {
@@ -96,6 +89,7 @@ namespace joymg
                     return;
                 }
                 waterLevel = value;
+                ValidateRivers();
                 Refresh();
             }
         }
@@ -129,6 +123,13 @@ namespace joymg
         }
 
         public bool IsUnderwater => waterLevel > elevation;
+
+        bool IsValidRiverDestination(HexCell neighbor)
+        {
+            return neighbor && (
+                elevation >= neighbor.elevation || waterLevel == neighbor.elevation
+            );
+        }
 
 
         private void Refresh()
@@ -200,6 +201,18 @@ namespace joymg
 
         #region Create Rivers
 
+        private void ValidateRivers()
+        {
+            if (hasOutgoingRiver && !IsValidRiverDestination(GetNeighbor(outgoingRiver)))
+            {
+                RemoveOutgoingRiver();
+            }
+            if (hasIncomingRiver && !GetNeighbor(incomingRiver).IsValidRiverDestination(this))
+            {
+                RemoveIncomingRiver();
+            }
+        }
+
         public void SetOutgoingRiver(HexDirection direction)
         {
             if (hasOutgoingRiver && outgoingRiver == direction)
@@ -209,7 +222,7 @@ namespace joymg
 
             HexCell neighbor = GetNeighbor(direction);
             //rivers can not go uphill
-            if (!neighbor || elevation < neighbor.elevation)
+            if (!IsValidRiverDestination(neighbor))
             {
                 return;
             }
