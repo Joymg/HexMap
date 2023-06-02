@@ -747,10 +747,11 @@ namespace joymg
             water.AddTriangle(center, edge.v3, edge.v4);
             water.AddTriangle(center, edge.v4, edge.v5);
 
-            Vector3 bridge = HexMetrics.GetWaterBridge(direction);
+            Vector3 center2 = neighbor.Position;
+            center2.y = center.y;
             EdgeVertices e2 = new EdgeVertices(
-                edge.v1 + bridge,
-                edge.v5 + bridge
+                center2 + HexMetrics.GetSecondSolidCorner(direction.Opposite()),
+                center2 + HexMetrics.GetFirstSolidCorner(direction.Opposite())
             );
             waterShore.AddQuad(edge.v1, edge.v2, e2.v1, e2.v2);
             waterShore.AddQuad(edge.v2, edge.v3, e2.v2, e2.v3);
@@ -764,8 +765,12 @@ namespace joymg
             HexCell nextNeighbor = hexCell.GetNeighbor(direction.Next());
             if (nextNeighbor != null)
             {
+                Vector3 v3 = nextNeighbor.Position + (nextNeighbor.IsUnderwater ?
+                                HexMetrics.GetFirstWaterCorner(direction.Previous()) :
+                                HexMetrics.GetFirstSolidCorner(direction.Previous()));
+                v3.y = center.y;
                 waterShore.AddTriangle(
-                    edge.v5, e2.v5, edge.v5 + HexMetrics.GetWaterBridge(direction.Next())
+                    edge.v5, e2.v5, v3
                 );
                 waterShore.AddTriangleUV(
                     new Vector2(0f, 0f),
