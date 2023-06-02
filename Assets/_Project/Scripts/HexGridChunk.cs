@@ -8,7 +8,7 @@ namespace joymg
 
         private HexCell[] cells;
 
-        public HexMesh terrain, rivers, roads, water;
+        public HexMesh terrain, rivers, roads, water, waterShore;
         private Canvas gridCanvas;
 
         private void Awake()
@@ -49,6 +49,7 @@ namespace joymg
             rivers.Clear();
             roads.Clear();
             water.Clear();
+            waterShore.Clear();
             for (int i = 0; i < cells.Length; i++)
             {
                 Triangulate(cells[i]);
@@ -57,6 +58,7 @@ namespace joymg
             rivers.Apply();
             roads.Apply();
             water.Apply();
+            waterShore.Apply();
         }
 
         private void Triangulate(HexCell hexCell)
@@ -750,16 +752,25 @@ namespace joymg
                 edge.v1 + bridge,
                 edge.v5 + bridge
             );
-            water.AddQuad(edge.v1, edge.v2, e2.v1, e2.v2);
-            water.AddQuad(edge.v2, edge.v3, e2.v2, e2.v3);
-            water.AddQuad(edge.v3, edge.v4, e2.v3, e2.v4);
-            water.AddQuad(edge.v4, edge.v5, e2.v4, e2.v5);
+            waterShore.AddQuad(edge.v1, edge.v2, e2.v1, e2.v2);
+            waterShore.AddQuad(edge.v2, edge.v3, e2.v2, e2.v3);
+            waterShore.AddQuad(edge.v3, edge.v4, e2.v3, e2.v4);
+            waterShore.AddQuad(edge.v4, edge.v5, e2.v4, e2.v5);
+            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
 
             HexCell nextNeighbor = hexCell.GetNeighbor(direction.Next());
             if (nextNeighbor != null)
             {
-                water.AddTriangle(
+                waterShore.AddTriangle(
                     edge.v5, e2.v5, edge.v5 + HexMetrics.GetBridge(direction.Next())
+                );
+                waterShore.AddTriangleUV(
+                    new Vector2(0f, 0f),
+                    new Vector2(0f, 1f),
+                    new Vector2(0f, nextNeighbor.IsUnderwater ? 0f : 1f)
                 );
             }
         }
