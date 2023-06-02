@@ -8,7 +8,7 @@ namespace joymg
 
         private HexCell[] cells;
 
-        public HexMesh terrain, rivers, roads, water, waterShore;
+        public HexMesh terrain, rivers, roads, water, waterShore, estuaries;
         private Canvas gridCanvas;
 
         private void Awake()
@@ -50,6 +50,7 @@ namespace joymg
             roads.Clear();
             water.Clear();
             waterShore.Clear();
+            estuaries.Clear();
             for (int i = 0; i < cells.Length; i++)
             {
                 Triangulate(cells[i]);
@@ -59,6 +60,7 @@ namespace joymg
             roads.Apply();
             water.Apply();
             waterShore.Apply();
+            estuaries.Apply();
         }
 
         private void Triangulate(HexCell hexCell)
@@ -774,18 +776,26 @@ namespace joymg
 
             Vector3 center2 = neighbor.Position;
             center2.y = center.y;
-            EdgeVertices e2 = new EdgeVertices(
+            EdgeVertices edge2 = new EdgeVertices(
                 center2 + HexMetrics.GetSecondSolidCorner(direction.Opposite()),
                 center2 + HexMetrics.GetFirstSolidCorner(direction.Opposite())
             );
-            waterShore.AddQuad(edge.v1, edge.v2, e2.v1, e2.v2);
-            waterShore.AddQuad(edge.v2, edge.v3, e2.v2, e2.v3);
-            waterShore.AddQuad(edge.v3, edge.v4, e2.v3, e2.v4);
-            waterShore.AddQuad(edge.v4, edge.v5, e2.v4, e2.v5);
-            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
-            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
-            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
-            waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+
+            if (hexCell.HasRiverThroughEdge(direction))
+            {
+                TriangulateEstuary(edge, edge2);
+            }
+            else
+            {
+                waterShore.AddQuad(edge.v1, edge.v2, edge2.v1, edge2.v2);
+                waterShore.AddQuad(edge.v2, edge.v3, edge2.v2, edge2.v3);
+                waterShore.AddQuad(edge.v3, edge.v4, edge2.v3, edge2.v4);
+                waterShore.AddQuad(edge.v4, edge.v5, edge2.v4, edge2.v5);
+                waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+                waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+                waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+               waterShore.AddQuadUV(0f, 0f, 0f, 1f);
+            }
 
             HexCell nextNeighbor = hexCell.GetNeighbor(direction.Next());
             if (nextNeighbor != null)
@@ -795,7 +805,7 @@ namespace joymg
                                 HexMetrics.GetFirstSolidCorner(direction.Previous()));
                 v3.y = center.y;
                 waterShore.AddTriangle(
-                    edge.v5, e2.v5, v3
+                    edge.v5, edge2.v5, v3
                 );
                 waterShore.AddTriangleUV(
                     new Vector2(0f, 0f),
@@ -803,6 +813,48 @@ namespace joymg
                     new Vector2(0f, nextNeighbor.IsUnderwater ? 0f : 1f)
                 );
             }
+        }
+
+        private void TriangulateEstuary(EdgeVertices edge, EdgeVertices edge2)
+        {
+            waterShore.AddTriangle(edge2.v1, edge.v2, edge.v1);
+            waterShore.AddTriangle(edge2.v5, edge.v5, edge.v4);
+            waterShore.AddTriangleUV(
+                new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0f, 0f)
+            );
+            waterShore.AddTriangleUV(
+                new Vector2(0f, 1f), new Vector2(0f, 0f), new Vector2(0f, 0f)
+            );
+
+            estuaries.AddQuad(edge2.v1, edge.v2, edge2.v2, edge.v3);
+            estuaries.AddTriangle(edge.v3, edge2.v2, edge2.v4);
+            estuaries.AddQuad(edge.v3, edge.v4, edge2.v4, edge2.v5);
+
+            estuaries.AddQuadUV(
+                new Vector2(0f, 1f), new Vector2(0f, 0f),
+                new Vector2(1f, 1f), new Vector2(0f, 0f)
+            );
+            estuaries.AddTriangleUV(
+                new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(1f, 1f)
+            );
+            estuaries.AddQuadUV(
+                new Vector2(0f, 0f), new Vector2(0f, 0f),
+                new Vector2(1f, 1f), new Vector2(0f, 1f)
+            );
+
+            estuaries.AddQuadUV2(
+                new Vector2(1.5f, 1f), new Vector2(0.7f, 1.15f),
+                new Vector2(1f, 0.8f), new Vector2(0.5f, 1.1f)
+            );
+            estuaries.AddTriangleUV2(
+                new Vector2(0.5f, 1.1f),
+                new Vector2(1f, 0.8f),
+                new Vector2(0f, 0.8f)
+            );
+            estuaries.AddQuadUV2(
+                new Vector2(0.5f, 1.1f), new Vector2(0.3f, 1.15f),
+                new Vector2(0f, 0.8f), new Vector2(-0.5f, 1f)
+            );
         }
 
         void TriangulateWaterfallInWater(
