@@ -38,7 +38,7 @@ namespace joymg
         public const int hashGridSize = 256;
         public const float hashGridScale = 0.25f;
 
-        static float[] hashGrid;
+        static HexHash[] hashGrid;
 
 
         private static Vector3[] corners = {
@@ -53,20 +53,20 @@ namespace joymg
 
         public static void InitializeHashGrid(int seed)
         {
-            hashGrid = new float[hashGridSize * hashGridSize];
+            hashGrid = new HexHash[hashGridSize * hashGridSize];
             //saving the sate for a later use
             Random.State currenState = Random.state;
             //using the seed only for hash grid creation
             Random.InitState(seed);
             for (int i = 0; i < hashGrid.Length; i++)
             {
-                hashGrid[i] = Random.value;
+                hashGrid[i] = HexHash.Create();
             }
             //reseting state
             Random.state = currenState;
         }
 
-        public static float SampleHashGrid(Vector3 position)
+        public static HexHash SampleHashGrid(Vector3 position)
         {
             int x = (int)(position.x * hashGridScale) % hashGridSize;
             if (x < 0)

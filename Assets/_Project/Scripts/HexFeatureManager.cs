@@ -21,11 +21,16 @@ namespace joymg
 
         public void AddFeature(Vector3 position)
         {
-            float hash = HexMetrics.SampleHashGrid(position);
+            HexHash hash = HexMetrics.SampleHashGrid(position);
+            if (hash.a >= 0.5f)
+            {
+                return;
+            }
+
             Transform instance = Instantiate(featurePrefab);
             position.y += instance.localScale.y * 0.5f;
             instance.localPosition = HexMetrics.Perturb(position);
-            instance.localRotation = Quaternion.Euler(0f, 360f * hash, 0f);
+            instance.localRotation = Quaternion.Euler(0f, 360f * hash.b, 0f);
             instance.SetParent(container);
         }
     }
