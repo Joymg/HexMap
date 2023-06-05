@@ -28,10 +28,14 @@ namespace joymg
         [SerializeField]
         private Texture2D noiseSource;
 
+        [SerializeField]
+        private int seed;
+
 
         void Awake()
         {
             HexMetrics.noiseSource = noiseSource;
+            HexMetrics.InitializeHashGrid(seed);
 
             cellCountX = chunkCountX * HexMetrics.chunkSizeX;
             cellCountZ = chunkCountZ * HexMetrics.chunkSizeZ;
@@ -42,7 +46,11 @@ namespace joymg
 
         private void OnEnable()
         {
-            HexMetrics.noiseSource = noiseSource;
+            if (!HexMetrics.noiseSource)
+            {
+                HexMetrics.noiseSource = noiseSource;
+                HexMetrics.InitializeHashGrid(seed);
+            }
         }
 
         private void CreateChunks()

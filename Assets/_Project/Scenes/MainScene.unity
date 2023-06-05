@@ -2550,6 +2550,7 @@ MonoBehaviour:
   defaultColor: {r: 1, g: 1, b: 1, a: 1}
   touchedColor: {r: 0.74902004, g: 0.16050428, b: 0.5350143, a: 1}
   noiseSource: {fileID: 2800000, guid: 05af9dcd1e90eab4288d5aace07c93bf, type: 3}
+  seed: 1234
 --- !u!23 &587596558
 MeshRenderer:
   m_ObjectHideFlags: 0
