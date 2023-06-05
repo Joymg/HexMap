@@ -9,6 +9,7 @@ namespace joymg
         private HexCell[] cells;
 
         public HexMesh terrain, rivers, roads, water, waterShore, estuaries;
+        public HexFeatureManager features;
         private Canvas gridCanvas;
 
         private void Awake()
@@ -51,6 +52,7 @@ namespace joymg
             water.Clear();
             waterShore.Clear();
             estuaries.Clear();
+            features.Clear();
             for (int i = 0; i < cells.Length; i++)
             {
                 Triangulate(cells[i]);
@@ -61,6 +63,7 @@ namespace joymg
             water.Apply();
             waterShore.Apply();
             estuaries.Apply();
+            features.Apply();
         }
 
         private void Triangulate(HexCell hexCell)
@@ -69,6 +72,7 @@ namespace joymg
             {
                 Triangulate(d, hexCell);
             }
+            features.AddFeature(hexCell.Position);
         }
 
         private void Triangulate(HexDirection direction, HexCell hexCell)
