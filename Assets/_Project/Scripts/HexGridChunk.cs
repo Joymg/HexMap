@@ -72,7 +72,10 @@ namespace joymg
             {
                 Triangulate(d, hexCell);
             }
-            features.AddFeature(hexCell.Position);
+            if (!hexCell.IsUnderwater && !hexCell.HasRiver && !hexCell.HasRoads)
+            {
+                features.AddFeature(hexCell.Position);
+            }
         }
 
         private void Triangulate(HexDirection direction, HexCell hexCell)
@@ -105,6 +108,11 @@ namespace joymg
             else
             {
                 TriangulateWithoutRiver(direction, hexCell, center, edge);
+
+                if (!hexCell.IsUnderwater && !hexCell.HasRoadThroughEdge(direction))
+                {
+                    features.AddFeature((center + edge.v1 + edge.v5) * (1f / 3f));
+                }
             }
 
 
@@ -149,6 +157,11 @@ namespace joymg
 
             TriangulateEdgeStrip(middleEdge, hexCell.Color, edge, hexCell.Color);
             TriangulateEdgeFan(center, middleEdge, hexCell.Color);
+
+            if (!hexCell.IsUnderwater && !hexCell.HasRoadThroughEdge(direction))
+            {
+                features.AddFeature((center + edge.v1 + edge.v5) * (1f / 3f));
+            }
         }
 
         private void TriangulateWithRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
@@ -882,7 +895,7 @@ namespace joymg
 
         }
 
-        void TriangulateWaterfallInWater( Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4,
+        void TriangulateWaterfallInWater(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4,
             float y1, float y2, float waterY
         )
         {
