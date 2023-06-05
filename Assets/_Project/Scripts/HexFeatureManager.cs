@@ -4,7 +4,7 @@ namespace joymg
 {
     public class HexFeatureManager : MonoBehaviour
     {
-        public Transform featurePrefab;
+        public Transform[] urbanPrefabs;
         private Transform container;
 
         public void Clear()
@@ -27,7 +27,7 @@ namespace joymg
                 return;
             }
 
-            Transform instance = Instantiate(featurePrefab);
+            Transform instance = Instantiate(urbanPrefabs[hexCell.UrbanLevel - 1]);
             position.y += instance.localScale.y * 0.5f;
             instance.localPosition = HexMetrics.Perturb(position);
             instance.localRotation = Quaternion.Euler(0f, 360f * hash.b, 0f);
