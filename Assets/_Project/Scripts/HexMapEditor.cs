@@ -22,8 +22,11 @@ namespace joymg
         private bool applyElevation = true;
         private int currentElevation;
 
-        private bool applyWaterLevel = true;
+        private bool applyWaterLevel = false;
         private int currentWaterLevel;
+        
+        private bool applyUrbanLevel, applyFarmLevel, applyPlantLevel;
+        private int currentUrbanLevel, currentFarmLevel, currentPlantLevel;
 
         private int brushSize;
 
@@ -128,6 +131,18 @@ namespace joymg
                 {
                     cell.WaterLevel = currentWaterLevel;
                 }
+                if (applyUrbanLevel)
+                {
+                    cell.UrbanLevel = currentUrbanLevel;
+                }
+                if (applyFarmLevel)
+                {
+                    cell.FarmLevel = currentFarmLevel;
+                }
+                if (applyPlantLevel)
+                {
+                    cell.PlantLevel = currentPlantLevel;
+                }
 
                 if (riverMode == OptionalToggle.No)
                 {
@@ -203,6 +218,36 @@ namespace joymg
         public void SetWaterLevel(float level)
         {
             currentWaterLevel = (int)level;
+        }
+
+        public void SetApplyUrbanLevel(bool toggle)
+        {
+            applyUrbanLevel = toggle;
+        }
+
+        public void SetUrbanLevel(float level)
+        {
+            currentUrbanLevel = (int)level;
+        }
+
+        public void SetApplyFarmLevel(bool toggle)
+        {
+            applyFarmLevel = toggle;
+        }
+
+        public void SetFarmLevel(float level)
+        {
+            currentFarmLevel = (int)level;
+        }
+
+        public void SetApplyPlantLevel(bool toggle)
+        {
+            applyPlantLevel = toggle;
+        }
+
+        public void SetPlantLevel(float level)
+        {
+            currentPlantLevel = (int)level;
         }
     }
 }

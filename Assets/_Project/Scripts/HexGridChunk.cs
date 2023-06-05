@@ -9,6 +9,7 @@ namespace joymg
         private HexCell[] cells;
 
         public HexMesh terrain, rivers, roads, water, waterShore, estuaries;
+        public HexFeatureManager features;
         private Canvas gridCanvas;
 
         private void Awake()
@@ -51,6 +52,7 @@ namespace joymg
             water.Clear();
             waterShore.Clear();
             estuaries.Clear();
+            features.Clear();
             for (int i = 0; i < cells.Length; i++)
             {
                 Triangulate(cells[i]);
@@ -61,6 +63,7 @@ namespace joymg
             water.Apply();
             waterShore.Apply();
             estuaries.Apply();
+            features.Apply();
         }
 
         private void Triangulate(HexCell hexCell)
@@ -68,6 +71,10 @@ namespace joymg
             for (HexDirection d = HexDirection.NE; d <= HexDirection.NW; d++)
             {
                 Triangulate(d, hexCell);
+            }
+            if (!hexCell.IsUnderwater && !hexCell.HasRiver && !hexCell.HasRoads)
+            {
+                features.AddFeature(hexCell, hexCell.Position);
             }
         }
 
@@ -101,6 +108,11 @@ namespace joymg
             else
             {
                 TriangulateWithoutRiver(direction, hexCell, center, edge);
+
+                if (!hexCell.IsUnderwater && !hexCell.HasRoadThroughEdge(direction))
+                {
+                    features.AddFeature(hexCell, (center + edge.v1 + edge.v5) * (1f / 3f));
+                }
             }
 
 
@@ -145,6 +157,11 @@ namespace joymg
 
             TriangulateEdgeStrip(middleEdge, hexCell.Color, edge, hexCell.Color);
             TriangulateEdgeFan(center, middleEdge, hexCell.Color);
+
+            if (!hexCell.IsUnderwater && !hexCell.HasRoadThroughEdge(direction))
+            {
+                features.AddFeature(hexCell, (center + edge.v1 + edge.v5) * (1f / 3f));
+            }
         }
 
         private void TriangulateWithRiver(HexDirection direction, HexCell hexCell, Vector3 center, EdgeVertices edge)
@@ -878,7 +895,7 @@ namespace joymg
 
         }
 
-        void TriangulateWaterfallInWater( Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4,
+        void TriangulateWaterfallInWater(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4,
             float y1, float y2, float waterY
         )
         {

@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace joymg
@@ -17,7 +16,7 @@ namespace joymg
 
         public const float elevationStep = 3f;
 
-       
+
         public const int terracesPerSlope = 2;
         public const int terraceSteps = terracesPerSlope * 2 + 1;
         public const float horizontalTerraceStepSize = 1f / terraceSteps;
@@ -36,6 +35,12 @@ namespace joymg
         public const float waterFactor = 0.6f;
         public const float waterBlendFactor = 1 - waterFactor;
 
+        public const int hashGridSize = 256;
+        public const float hashGridScale = 0.25f;
+
+        private static HexHash[] hashGrid;
+
+
         private static Vector3[] corners = {
             new Vector3(0f, 0f, outerRadius),
             new Vector3(innerRadius, 0f, 0.5f * outerRadius),
@@ -45,6 +50,47 @@ namespace joymg
             new Vector3(-innerRadius, 0f, 0.5f * outerRadius),
             new Vector3(0f, 0f, outerRadius)
         };
+
+        private static float[][] featureThresholds = {
+            new float[] {0.0f, 0.0f, 0.4f},
+            new float[] {0.0f, 0.4f, 0.6f},
+            new float[] {0.4f, 0.6f, 0.8f}
+        };
+
+        public static void InitializeHashGrid(int seed)
+        {
+            hashGrid = new HexHash[hashGridSize * hashGridSize];
+            //saving the sate for a later use
+            Random.State currenState = Random.state;
+            //using the seed only for hash grid creation
+            Random.InitState(seed);
+            for (int i = 0; i < hashGrid.Length; i++)
+            {
+                hashGrid[i] = HexHash.Create();
+            }
+            //reseting state
+            Random.state = currenState;
+        }
+
+        public static HexHash SampleHashGrid(Vector3 position)
+        {
+            int x = (int)(position.x * hashGridScale) % hashGridSize;
+            if (x < 0)
+            {
+                x += hashGridSize;
+            }
+            int z = (int)(position.z * hashGridScale) % hashGridSize;
+            if (z < 0)
+            {
+                z += hashGridSize;
+            }
+            return hashGrid[x + z * hashGridSize];
+        }
+
+        public static float[] GetFeatureThresholds(int level)
+        {
+            return featureThresholds[level];
+        }
 
         public static Vector3 GetFirstCorner(HexDirection direction)
         {
