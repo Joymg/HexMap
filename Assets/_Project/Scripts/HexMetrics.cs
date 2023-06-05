@@ -16,7 +16,7 @@ namespace joymg
 
         public const float elevationStep = 3f;
 
-       
+
         public const int terracesPerSlope = 2;
         public const int terraceSteps = terracesPerSlope * 2 + 1;
         public const float horizontalTerraceStepSize = 1f / terraceSteps;
@@ -38,7 +38,7 @@ namespace joymg
         public const int hashGridSize = 256;
         public const float hashGridScale = 0.25f;
 
-        static HexHash[] hashGrid;
+        private static HexHash[] hashGrid;
 
 
         private static Vector3[] corners = {
@@ -49,6 +49,12 @@ namespace joymg
             new Vector3(-innerRadius, 0f, -0.5f * outerRadius),
             new Vector3(-innerRadius, 0f, 0.5f * outerRadius),
             new Vector3(0f, 0f, outerRadius)
+        };
+
+        private static float[][] featureThresholds = {
+            new float[] {0.0f, 0.0f, 0.4f},
+            new float[] {0.0f, 0.4f, 0.6f},
+            new float[] {0.4f, 0.6f, 0.8f}
         };
 
         public static void InitializeHashGrid(int seed)
@@ -79,6 +85,11 @@ namespace joymg
                 z += hashGridSize;
             }
             return hashGrid[x + z * hashGridSize];
+        }
+
+        public static float[] GetFeatureThresholds(int level)
+        {
+            return featureThresholds[level];
         }
 
         public static Vector3 GetFirstCorner(HexDirection direction)
