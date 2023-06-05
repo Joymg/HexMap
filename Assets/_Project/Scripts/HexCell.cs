@@ -23,6 +23,8 @@ namespace joymg
         private bool hasIncomingRiver, hasOutgoingRiver;
         private HexDirection incomingRiver, outgoingRiver;
 
+        private int urbanLevel;
+
         public HexCoordinates Coordinates { get => coordinates; set => coordinates = value; }
         public Color Color
         {
@@ -91,6 +93,19 @@ namespace joymg
                 waterLevel = value;
                 ValidateRivers();
                 Refresh();
+            }
+        }
+
+        public int UrbanLevel
+        {
+            get => urbanLevel;
+            set
+            {
+                if (urbanLevel!= value)
+                {
+                    urbanLevel = value;
+                    RefreshSelfOnly();
+                }
             }
         }
 

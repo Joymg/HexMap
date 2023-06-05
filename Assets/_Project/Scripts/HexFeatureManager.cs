@@ -19,10 +19,10 @@ namespace joymg
 
         public void Apply() { }
 
-        public void AddFeature(Vector3 position)
+        public void AddFeature(HexCell hexCell, Vector3 position)
         {
             HexHash hash = HexMetrics.SampleHashGrid(position);
-            if (hash.a >= 0.5f)
+            if (hash.a >= hexCell.UrbanLevel * 0.25f)
             {
                 return;
             }

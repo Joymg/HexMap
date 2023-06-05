@@ -74,7 +74,7 @@ namespace joymg
             }
             if (!hexCell.IsUnderwater && !hexCell.HasRiver && !hexCell.HasRoads)
             {
-                features.AddFeature(hexCell.Position);
+                features.AddFeature(hexCell, hexCell.Position);
             }
         }
 
@@ -111,7 +111,7 @@ namespace joymg
 
                 if (!hexCell.IsUnderwater && !hexCell.HasRoadThroughEdge(direction))
                 {
-                    features.AddFeature((center + edge.v1 + edge.v5) * (1f / 3f));
+                    features.AddFeature(hexCell, (center + edge.v1 + edge.v5) * (1f / 3f));
                 }
             }
 
@@ -160,7 +160,7 @@ namespace joymg
 
             if (!hexCell.IsUnderwater && !hexCell.HasRoadThroughEdge(direction))
             {
-                features.AddFeature((center + edge.v1 + edge.v5) * (1f / 3f));
+                features.AddFeature(hexCell, (center + edge.v1 + edge.v5) * (1f / 3f));
             }
         }
 
