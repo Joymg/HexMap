@@ -300,7 +300,10 @@ namespace joymg
                 edge.v5 + bridge
             );
 
-            if (hexCell.HasRiverThroughEdge(direction))
+            bool hasRiver = hexCell.HasRiverThroughEdge(direction);
+            bool hasRoad = hexCell.HasRoadThroughEdge(direction);
+
+            if (hasRiver)
             {
                 edge2.v3.y = neighbor.StreamBedY;
                 if (!hexCell.IsUnderwater)
@@ -331,14 +334,14 @@ namespace joymg
 
             if (hexCell.GetEdgeType(direction) == HexEdgeType.Slope)
             {
-                TriangulateEdgeTerraces(edge, hexCell, edge2, neighbor, hexCell.HasRoadThroughEdge(direction));
+                TriangulateEdgeTerraces(edge, hexCell, edge2, neighbor, hasRoad);
             }
             else
             {
-                TriangulateEdgeStrip(edge, hexCell.Color, edge2, neighbor.Color, hexCell.HasRoadThroughEdge(direction));
+                TriangulateEdgeStrip(edge, hexCell.Color, edge2, neighbor.Color, hasRoad);
             }
 
-            features.AddWall(edge, hexCell, edge2, neighbor);
+            features.AddWall(edge, hexCell, edge2, neighbor, hasRiver, hasRoad);
 
             HexCell nextNeighbor = hexCell.GetNeighbor(direction.Next());
             //creating connection triangles only in some of the directions, avoiding creating them trice
