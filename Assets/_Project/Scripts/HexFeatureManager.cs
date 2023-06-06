@@ -79,6 +79,45 @@ namespace joymg
             }
         }
 
+        public void AddWall(Vector3 cornerVertex1, HexCell cell1,
+            Vector3 cornerVertex2, HexCell cell2,
+            Vector3 cornerVertex3, HexCell cell3)
+        {
+            if (cell1.HasWalls)
+            {
+                if (cell2.HasWalls)
+                {
+                    if (!cell3.HasWalls)
+                    {
+                        AddWallSegment(cornerVertex3, cell3, cornerVertex1, cell1, cornerVertex2, cell2);
+                    }
+                }
+                else if (cell3.HasWalls)
+                {
+                    AddWallSegment(cornerVertex2, cell2, cornerVertex3, cell3, cornerVertex1, cell1);
+                }
+                else
+                {
+                    AddWallSegment(cornerVertex1, cell1, cornerVertex2, cell2, cornerVertex3, cell3);
+                }
+            }
+            else if (cell2.HasWalls) 
+            {
+                if (cell3.HasWalls)
+                {
+                    AddWallSegment(cornerVertex1, cell1, cornerVertex2, cell2, cornerVertex3, cell3);
+                }
+                else
+                {
+                    AddWallSegment(cornerVertex2, cell2, cornerVertex3, cell3, cornerVertex1, cell1);
+                }
+            }
+            else if (cell3.HasWalls)
+            {
+                AddWallSegment(cornerVertex3, cell3, cornerVertex1, cell1, cornerVertex2, cell2);
+            }
+        }
+
         public void AddWallSegment(Vector3 nearLeft, Vector3 farLeft, Vector3 nearRight, Vector3 farRight)
         {
             Vector3 left = Vector3.Lerp(nearLeft, farLeft, 0.5f);
@@ -87,20 +126,32 @@ namespace joymg
             Vector3 leftThicknessOffset = HexMetrics.WallThicknessOffset(nearLeft, farLeft);
             Vector3 rightThicknessOffset = HexMetrics.WallThicknessOffset(nearRight, farRight);
 
+            float leftTop = left.y + HexMetrics.wallHeight;
+            float rightTop = right.y + HexMetrics.wallHeight;
+
             Vector3 v1, v2, v3, v4;
             v1 = v3 = left - leftThicknessOffset;
             v2 = v4 = right - rightThicknessOffset;
-            v3.y = v4.y = left.y + HexMetrics.wallHeight;
+            v3.y = leftTop;
+            v4.y = rightTop;
             walls.AddQuad(v1, v2, v3, v4);
 
             Vector3 t1 = v3, t2 = v4;
 
             v1 = v3 = left + leftThicknessOffset;
             v2 = v4 = right + rightThicknessOffset;
-            v3.y = v4.y = left.y + HexMetrics.wallHeight;
+            v3.y = leftTop;
+            v4.y = rightTop;
             walls.AddQuad(v2, v1, v4, v3);
 
             walls.AddQuad(t1, t2, v3, v4);
+        }
+
+        public void AddWallSegment(Vector3 pivot, HexCell pivotCell,
+            Vector3 left, HexCell leftCell,
+            Vector3 right, HexCell rightCell)
+        {
+            AddWallSegment(pivot, left, pivot, right);
         }
 
         private Transform PickPrefab(HexFeatureCollection[] collection, int level, float hash, float choice)

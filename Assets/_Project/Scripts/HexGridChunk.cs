@@ -443,6 +443,7 @@ namespace joymg
                 terrain.AddTriangleColor(bottomCell.Color, leftCell.Color, rightCell.Color);
             }
 
+            features.AddWall(bottom, bottomCell, left, leftCell, right, rightCell);
         }
 
         private void TriangulateCornerTerraces(
