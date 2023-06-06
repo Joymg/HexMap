@@ -158,9 +158,6 @@ namespace joymg
                 {
                     cell.HasWalls = wallMode == OptionalToggle.Yes;
                 }
-                {
-
-                }
 
                 if (isDrag)
                 {

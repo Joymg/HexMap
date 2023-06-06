@@ -338,6 +338,8 @@ namespace joymg
                 TriangulateEdgeStrip(edge, hexCell.Color, edge2, neighbor.Color, hexCell.HasRoadThroughEdge(direction));
             }
 
+            features.AddWall(edge, hexCell, edge2, neighbor);
+
             HexCell nextNeighbor = hexCell.GetNeighbor(direction.Next());
             //creating connection triangles only in some of the directions, avoiding creating them trice
             if (direction <= HexDirection.E && nextNeighbor != null)
