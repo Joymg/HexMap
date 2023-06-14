@@ -25,8 +25,8 @@ namespace joymg
         private bool applyWaterLevel = false;
         private int currentWaterLevel;
         
-        private bool applyUrbanLevel, applyFarmLevel, applyPlantLevel;
-        private int currentUrbanLevel, currentFarmLevel, currentPlantLevel;
+        private bool applyUrbanLevel, applyFarmLevel, applyPlantLevel, applySpecialIndex;
+        private int currentUrbanLevel, currentFarmLevel, currentPlantLevel, currentSpecialIndex;
 
         private int brushSize;
 
@@ -130,6 +130,10 @@ namespace joymg
                 if (applyWaterLevel)
                 {
                     cell.WaterLevel = currentWaterLevel;
+                }
+                if (applySpecialIndex)
+                {
+                    cell.SpecialIndex = currentSpecialIndex;
                 }
                 if (applyUrbanLevel)
                 {
@@ -259,6 +263,16 @@ namespace joymg
         public void SetWallMode(int mode)
         {
             wallMode = (OptionalToggle)mode;
+        }
+
+        public void SetApplySpecialIndex(bool toggle)
+        {
+            applySpecialIndex = toggle;
+        }
+
+        public void SetSpecialIndex(float index)
+        {
+            currentSpecialIndex = (int)index;
         }
     }
 }

@@ -6,6 +6,8 @@ namespace joymg
     {
         public HexFeatureCollection[] urbanCollection, farmCollections, plantCollections;
         public HexMesh walls;
+        public Transform wallTower, bridge;
+        public Transform[] special;
 
         private Transform container;
 
@@ -27,6 +29,11 @@ namespace joymg
 
         public void AddFeature(HexCell hexCell, Vector3 position)
         {
+            if (hexCell.IsSpecial)
+            {
+                return;
+            }
+
             HexHash hash = HexMetrics.SampleHashGrid(position);
             Transform prefab = PickPrefab(urbanCollection, hexCell.UrbanLevel, hash.a, hash.d);
             Transform otherPrefab = PickPrefab(farmCollections, hexCell.FarmLevel, hash.b, hash.d);
@@ -69,6 +76,15 @@ namespace joymg
             instance.localPosition = HexMetrics.Perturb(position);
             instance.localRotation = Quaternion.Euler(0f, 360f * hash.e, 0f);
             instance.SetParent(container);
+        }
+
+        public void AddSpecialFeature(HexCell cell, Vector3 position)
+        {
+            Transform instance = Instantiate(special[cell.SpecialIndex - 1]);
+            instance.localPosition = HexMetrics.Perturb(position);
+            HexHash hash = HexMetrics.SampleHashGrid(position);
+            instance.localRotation = Quaternion.Euler(0f, 360f * hash.e, 0f);
+            instance.SetParent(container, false);
         }
 
         public void AddWall(EdgeVertices near, HexCell nearCell, EdgeVertices far, HexCell farCell, bool hasRiver, bool hasRoad)
@@ -131,7 +147,7 @@ namespace joymg
             }
         }
 
-        public void AddWallSegment(Vector3 nearLeft, Vector3 farLeft, Vector3 nearRight, Vector3 farRight)
+        public void AddWallSegment(Vector3 nearLeft, Vector3 farLeft, Vector3 nearRight, Vector3 farRight,bool addTower = false)
         {
             nearLeft = HexMetrics.Perturb(nearLeft);
             farLeft = HexMetrics.Perturb(farLeft);
@@ -161,8 +177,17 @@ namespace joymg
             v3.y = leftTop;
             v4.y = rightTop;
             walls.AddQuadUnperturbed(v2, v1, v4, v3);
-
             walls.AddQuadUnperturbed(t1, t2, v3, v4);
+
+            if (addTower)
+            {
+                Transform towerInstance = Instantiate(wallTower);
+                towerInstance.transform.localPosition = (left + right) * 0.5f;
+                Vector3 rightDirection = right - left;
+                rightDirection.y = 0f;
+                towerInstance.transform.right = rightDirection;
+                towerInstance.SetParent(container, false);
+            }
         }
 
         public void AddWallSegment(Vector3 pivot, HexCell pivotCell,
@@ -181,7 +206,13 @@ namespace joymg
             {
                 if (hasRightWall)
                 {
-                    AddWallSegment(pivot, left, pivot, right);
+                    bool hasTower = false;
+                    if (leftCell.Elevation == rightCell.Elevation)
+                    {
+                        HexHash hash = HexMetrics.SampleHashGrid((pivot + left + right) * (1f / 3f));
+                        hasTower = hash.e < HexMetrics.wallTowerThreshold;
+                    }
+                    AddWallSegment(pivot, left, pivot, right, hasTower);
                 }
                 else if (leftCell.Elevation < rightCell.Elevation)
                 {
@@ -241,6 +272,22 @@ namespace joymg
             walls.AddQuadUnperturbed(point, v2, pointTop, v4);
             walls.AddTriangleUnperturbed(pointTop, v3, v4);
         }
+
+        public void AddBridge(Vector3 roadCenter1, Vector3 roadCenter2)
+        {
+            roadCenter1 = HexMetrics.Perturb(roadCenter1);
+            roadCenter2 = HexMetrics.Perturb(roadCenter2);
+
+            Transform bridgeInstance = Instantiate(bridge);
+            bridgeInstance.localPosition = (roadCenter1 + roadCenter2) * 0.5f;
+            bridgeInstance.forward = roadCenter2 - roadCenter1;
+            float length = Vector3.Distance(roadCenter1, roadCenter2);
+            bridgeInstance.localScale = new Vector3(
+                1f, 1f, length * (1f / HexMetrics.bridgeDesignLength)
+            );
+            bridgeInstance.SetParent(container, false);
+        }
+
 
         private Transform PickPrefab(HexFeatureCollection[] collection, int level, float hash, float choice)
         {
