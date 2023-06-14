@@ -6,7 +6,7 @@ namespace joymg
     {
         public HexFeatureCollection[] urbanCollection, farmCollections, plantCollections;
         public HexMesh walls;
-        public Transform wallTower;
+        public Transform wallTower, bridge;
 
         private Transform container;
 
@@ -257,6 +257,22 @@ namespace joymg
             walls.AddQuadUnperturbed(point, v2, pointTop, v4);
             walls.AddTriangleUnperturbed(pointTop, v3, v4);
         }
+
+        public void AddBridge(Vector3 roadCenter1, Vector3 roadCenter2)
+        {
+            roadCenter1 = HexMetrics.Perturb(roadCenter1);
+            roadCenter2 = HexMetrics.Perturb(roadCenter2);
+
+            Transform bridgeInstance = Instantiate(bridge);
+            bridgeInstance.localPosition = (roadCenter1 + roadCenter2) * 0.5f;
+            bridgeInstance.forward = roadCenter2 - roadCenter1;
+            float length = Vector3.Distance(roadCenter1, roadCenter2);
+            bridgeInstance.localScale = new Vector3(
+                1f, 1f, length * (1f / HexMetrics.bridgeDesignLength)
+            );
+            bridgeInstance.SetParent(container, false);
+        }
+
 
         private Transform PickPrefab(HexFeatureCollection[] collection, int level, float hash, float choice)
         {

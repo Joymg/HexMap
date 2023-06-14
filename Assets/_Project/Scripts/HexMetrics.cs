@@ -46,6 +46,8 @@ namespace joymg
         public const float wallTowerThreshold = 0.5f;
         public const float wallYOffset = -1f;
 
+        public const float bridgeDesignLength = 7f;
+
 
         private static Vector3[] corners = {
             new Vector3(0f, 0f, outerRadius),

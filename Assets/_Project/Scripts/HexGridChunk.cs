@@ -651,6 +651,13 @@ namespace joymg
                     corner = HexMetrics.GetFirstSolidCorner(direction);
                 }
                 roadCenter += corner * 0.5f;
+                if (hexCell.IncomingRiver == direction.Next() && (
+                    hexCell.HasRoadThroughEdge(direction.Next2()) ||
+                    hexCell.HasRoadThroughEdge(direction.Opposite())
+                ))
+                {
+                    features.AddBridge(roadCenter, center - corner * 0.5f);
+                }
                 center += corner * 0.25f;
             }
             //curved river
@@ -693,10 +700,15 @@ namespace joymg
                     !hexCell.HasRoadThroughEdge(middle.Previous()) &&
                     !hexCell.HasRoadThroughEdge(middle.Next()))
                 {
-
+                    return;
                 }
 
-                roadCenter += HexMetrics.GetSolidEdgeMiddle(middle) * 0.25f;
+                Vector3 offset = HexMetrics.GetSolidEdgeMiddle(middle);
+                roadCenter += offset* 0.25f;
+                if (direction == middle && hexCell.HasRoadThroughEdge(direction.Opposite()))
+                {
+                    features.AddBridge(roadCenter, center - offset * (HexMetrics.innerToOuter * 0.7f));
+                }
             }
 
             Vector3 middleLeft = Vector3.Lerp(roadCenter, edge.v1, interpolators.x);
