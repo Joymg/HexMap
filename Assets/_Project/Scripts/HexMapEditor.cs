@@ -30,7 +30,7 @@ namespace joymg
 
         private int brushSize;
 
-        private OptionalToggle riverMode, roadMode;
+        private OptionalToggle riverMode, roadMode, wallMode;
 
         private bool isDrag;
         private HexDirection dragDirection;
@@ -153,6 +153,12 @@ namespace joymg
                 {
                     cell.RemoveRoads();
                 }
+
+                if (wallMode != OptionalToggle.Ignore)
+                {
+                    cell.HasWalls = wallMode == OptionalToggle.Yes;
+                }
+
                 if (isDrag)
                 {
                     HexCell otherCell = cell.GetNeighbor(dragDirection.Opposite());
@@ -248,6 +254,11 @@ namespace joymg
         public void SetPlantLevel(float level)
         {
             currentPlantLevel = (int)level;
+        }
+
+        public void SetWallMode(int mode)
+        {
+            wallMode = (OptionalToggle)mode;
         }
     }
 }

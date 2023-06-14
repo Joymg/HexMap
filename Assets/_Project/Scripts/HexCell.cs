@@ -25,6 +25,8 @@ namespace joymg
 
         private int urbanLevel, farmLevel, plantLevel;
 
+        private bool hasWalls;
+
         public HexCoordinates Coordinates { get => coordinates; set => coordinates = value; }
         public Color Color
         {
@@ -134,6 +136,19 @@ namespace joymg
                 {
                     urbanLevel = value;
                     RefreshSelfOnly();
+                }
+            }
+        }
+
+        public bool HasWalls
+        {
+            get => hasWalls;
+            set
+            {
+                if (hasWalls != value)
+                {
+                    hasWalls = value;
+                    Refresh();
                 }
             }
         }
