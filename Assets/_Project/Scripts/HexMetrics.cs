@@ -43,6 +43,8 @@ namespace joymg
         public const float wallHeight = 3f;
         public const float wallThickness = 0.75f;
         public const float wallElevationOffset = verticalTerraceStepSize;
+        public const float wallTowerThreshold = 0.5f;
+        public const float wallYOffset = -1f;
 
 
         private static Vector3[] corners = {
@@ -105,7 +107,7 @@ namespace joymg
             near.x += (far.x - near.x) * 0.5f;
             near.z += (far.z - near.z) * 0.5f;
             float v = near.y < far.y ? wallElevationOffset : (1f - wallElevationOffset);
-            near.y += (far.y - near.y) * v;
+            near.y += (far.y - near.y) * v + wallYOffset;
             return near;
         }
 
