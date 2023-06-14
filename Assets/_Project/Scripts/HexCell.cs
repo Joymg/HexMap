@@ -27,6 +27,8 @@ namespace joymg
 
         private bool hasWalls;
 
+        private int specialIndex;
+
         public HexCoordinates Coordinates { get => coordinates; set => coordinates = value; }
         public Color Color
         {
@@ -153,6 +155,20 @@ namespace joymg
             }
         }
 
+        public int SpecialIndex
+        {
+            get => specialIndex;
+            set
+            {
+                if (specialIndex != value && !HasRiver)
+                {
+                    specialIndex = value;
+                    RemoveRoads();
+                    RefreshSelfOnly();
+                }
+            }
+        }
+
         public float StreamBedY { get => (elevation + HexMetrics.streamBedElevationOffset) * HexMetrics.elevationStep; }
         public float RiverSurfaceY => (elevation + HexMetrics.waterElevationOffset) * HexMetrics.elevationStep;
         public float WaterSurfaceY => (waterLevel + HexMetrics.waterElevationOffset) * HexMetrics.elevationStep;
@@ -182,6 +198,8 @@ namespace joymg
         }
 
         public bool IsUnderwater => waterLevel > elevation;
+
+        public bool IsSpecial => specialIndex > 0;
 
         bool IsValidRiverDestination(HexCell neighbor)
         {
@@ -294,10 +312,12 @@ namespace joymg
 
             hasOutgoingRiver = true;
             outgoingRiver = direction;
+            specialIndex = 0;
 
             neighbor.RemoveIncomingRiver();
             neighbor.hasIncomingRiver = true;
             neighbor.incomingRiver = direction.Opposite();
+            neighbor.specialIndex = 0;
 
             //Rivers disallow roads, so removing the road refresh the mesh, own and neighbor's
             SetRoad((int)direction, false);
@@ -346,6 +366,7 @@ namespace joymg
         {
             if (!roads[(int)direction] &&
                 !HasRiverThroughEdge(direction) &&
+                !IsSpecial && !GetNeighbor(direction).IsSpecial &&
                 GetElevationDifference(direction) <= 1)
             {
                 SetRoad((int)direction, true);

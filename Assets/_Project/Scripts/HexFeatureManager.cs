@@ -7,6 +7,7 @@ namespace joymg
         public HexFeatureCollection[] urbanCollection, farmCollections, plantCollections;
         public HexMesh walls;
         public Transform wallTower, bridge;
+        public Transform[] special;
 
         private Transform container;
 
@@ -28,6 +29,11 @@ namespace joymg
 
         public void AddFeature(HexCell hexCell, Vector3 position)
         {
+            if (hexCell.IsSpecial)
+            {
+                return;
+            }
+
             HexHash hash = HexMetrics.SampleHashGrid(position);
             Transform prefab = PickPrefab(urbanCollection, hexCell.UrbanLevel, hash.a, hash.d);
             Transform otherPrefab = PickPrefab(farmCollections, hexCell.FarmLevel, hash.b, hash.d);
@@ -70,6 +76,15 @@ namespace joymg
             instance.localPosition = HexMetrics.Perturb(position);
             instance.localRotation = Quaternion.Euler(0f, 360f * hash.e, 0f);
             instance.SetParent(container);
+        }
+
+        public void AddSpecialFeature(HexCell cell, Vector3 position)
+        {
+            Transform instance = Instantiate(special[cell.SpecialIndex - 1]);
+            instance.localPosition = HexMetrics.Perturb(position);
+            HexHash hash = HexMetrics.SampleHashGrid(position);
+            instance.localRotation = Quaternion.Euler(0f, 360f * hash.e, 0f);
+            instance.SetParent(container, false);
         }
 
         public void AddWall(EdgeVertices near, HexCell nearCell, EdgeVertices far, HexCell farCell, bool hasRiver, bool hasRoad)

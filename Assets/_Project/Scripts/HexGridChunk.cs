@@ -72,9 +72,16 @@ namespace joymg
             {
                 Triangulate(d, hexCell);
             }
-            if (!hexCell.IsUnderwater && !hexCell.HasRiver && !hexCell.HasRoads)
+            if (!hexCell.IsUnderwater)
             {
-                features.AddFeature(hexCell, hexCell.Position);
+                if (!hexCell.HasRiver && !hexCell.HasRoads)
+                {
+                    features.AddFeature(hexCell, hexCell.Position);
+                }
+                if (hexCell.IsSpecial)
+                {
+                    features.AddSpecialFeature(hexCell, hexCell.Position);
+                }
             }
         }
 
