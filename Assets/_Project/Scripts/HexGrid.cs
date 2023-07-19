@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System;
+using System.IO;
 
 namespace joymg
 {
@@ -21,21 +22,20 @@ namespace joymg
         private HexGridChunk[] chunks;
 
         [SerializeField]
-        private Color defaultColor = Color.white;
-        [SerializeField]
-        private Color touchedColor = new Color(210, 45, 150, 255);
-
-        [SerializeField]
         private Texture2D noiseSource;
 
         [SerializeField]
         private int seed;
+
+        public Color[] colors;
 
 
         void Awake()
         {
             HexMetrics.noiseSource = noiseSource;
             HexMetrics.InitializeHashGrid(seed);
+            HexMetrics.colors = colors;
+            HexMetrics.colors = colors;
 
             cellCountX = chunkCountX * HexMetrics.chunkSizeX;
             cellCountZ = chunkCountZ * HexMetrics.chunkSizeZ;
@@ -50,6 +50,7 @@ namespace joymg
             {
                 HexMetrics.noiseSource = noiseSource;
                 HexMetrics.InitializeHashGrid(seed);
+                HexMetrics.colors = colors;
             }
         }
 
@@ -91,7 +92,6 @@ namespace joymg
             //cell.transform.SetParent(transform, false);
             cell.transform.localPosition = position;
             cell.Coordinates = HexCoordinates.FromOffsetCoordiantes(x, z);
-            cell.Color = defaultColor;
 
             if (x > 0)
             {
@@ -170,6 +170,27 @@ namespace joymg
             for (int i = 0; i < chunks.Length; i++)
             {
                 chunks[i].ShowUI(visible);
+            }
+        }
+
+        public void Save(BinaryWriter writer)
+        {
+            for (int i = 0; i < cells.Length; i++)
+            {
+                cells[i].Save(writer);
+            }
+        }
+
+        public void Load(BinaryReader reader)
+        {
+            for (int i = 0; i < cells.Length; i++)
+            {
+                cells[i].Load(reader);
+            }
+
+            for (int i = 0; i < chunks.Length; i++)
+            {
+                chunks[i].Refresh();
             }
         }
     }
