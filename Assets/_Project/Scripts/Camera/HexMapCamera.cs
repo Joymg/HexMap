@@ -6,6 +6,7 @@ namespace joymg
     public class HexMapCamera : MonoBehaviour
     {
         private Transform swivel, stick;
+        private static HexMapCamera instance;
 
         public HexGrid grid;
 
@@ -21,10 +22,23 @@ namespace joymg
         [SerializeField]
         private float moveSpeedMinZoom, moveSpeedMaxZoom;
 
+        public static bool Locked
+        {
+            set
+            {
+                instance.enabled = !value;
+            }
+        }
+
         private void Awake()
         {
             swivel = transform.GetChild(0);
             stick = swivel.GetChild(0);
+        }
+
+        void OnEnable()
+        {
+            instance = this;
         }
 
         private void Update()
@@ -50,6 +64,7 @@ namespace joymg
             }
         }
 
+
         private void AdjustRotation(float rotationDelta)
         {
             rotationAngle += rotationDelta * rotationSpeed * Time.deltaTime;
@@ -62,6 +77,11 @@ namespace joymg
                 rotationAngle -= 360f;
             }
             transform.localRotation = Quaternion.Euler(0f, rotationAngle, 0f);
+        }
+
+        public static void ValidatePosition()
+        {
+            instance.AdjustPosition(0f, 0f);
         }
 
         private void AdjustPosition(float xDelta, float zDelta)
@@ -77,14 +97,10 @@ namespace joymg
 
         Vector3 ClampPosition(Vector3 position)
         {
-            float xMax =
-                (grid.chunkCountX * HexMetrics.chunkSizeX - 0.5f) *
-                (2f * HexMetrics.innerRadius);
+            float xMax = (grid.cellCountX - 0.5f) * (2f * HexMetrics.innerRadius);
             position.x = Mathf.Clamp(position.x, 0f, xMax);
 
-            float zMax =
-                (grid.chunkCountZ * HexMetrics.chunkSizeZ - 1) *
-                (1.5f * HexMetrics.outerRadius);
+            float zMax = (grid.cellCountZ - 1) * (1.5f * HexMetrics.outerRadius);
             position.z = Mathf.Clamp(position.z, 0f, zMax);
 
             return position;
