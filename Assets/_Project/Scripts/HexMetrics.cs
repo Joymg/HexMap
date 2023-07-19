@@ -48,6 +48,8 @@ namespace joymg
 
         public const float bridgeDesignLength = 7f;
 
+        public static Color[] colors;
+
 
         private static Vector3[] corners = {
             new Vector3(0f, 0f, outerRadius),

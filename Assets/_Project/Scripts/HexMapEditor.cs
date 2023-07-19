@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -15,9 +16,7 @@ namespace joymg
 
         public HexGrid hexGrid;
 
-        private bool applyColor;
-        public Color[] colors;
-        private Color currentColor;
+        int currentTerrainTypeIndex;
 
         private bool applyElevation = true;
         private int currentElevation;
@@ -36,10 +35,6 @@ namespace joymg
         private HexDirection dragDirection;
         private HexCell previousCell;
 
-        void Awake()
-        {
-            SelectColor(0);
-        }
 
         void Update()
         {
@@ -119,9 +114,9 @@ namespace joymg
         {
             if (cell)
             {
-                if (applyColor)
+                if (currentTerrainTypeIndex >= 0)
                 {
-                    cell.Color = currentColor;
+                    cell.TerrainTypeIndex = currentTerrainTypeIndex;
                 }
                 if (applyElevation)
                 {
@@ -186,13 +181,9 @@ namespace joymg
             hexGrid.ShowUI(visible);
         }
 
-        public void SelectColor(int index)
+        public void SetTerrainTypeIndex(int index)
         {
-            applyColor = index >= 0;
-            if (applyColor)
-            {
-                currentColor = colors[index];
-            }
+            currentTerrainTypeIndex = index;
         }
 
         public void SetElevation(float elevation)
@@ -273,6 +264,33 @@ namespace joymg
         public void SetSpecialIndex(float index)
         {
             currentSpecialIndex = (int)index;
+        }
+
+        public void Save()
+        {
+            string path = Path.Combine(Application.persistentDataPath, "test.hexmap");
+            using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
+            {
+                writer.Write(0);
+                hexGrid.Save(writer);
+            }
+        }
+
+        public void Load()
+        {
+            string path = Path.Combine(Application.persistentDataPath, "test.hexmap");
+            using (BinaryReader reader = new BinaryReader(File.OpenRead(path)))
+            {
+                int header = reader.ReadInt32();
+                if (header == 0)
+                {
+                    hexGrid.Load(reader);
+                }
+                else
+                {
+                    Debug.LogWarning("Unknown map format " + header);
+                }
+            }
         }
     }
 }
