@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -268,30 +269,47 @@ namespace joymg
 
         public void Save()
         {
-            string path = Path.Combine(Application.persistentDataPath, "test.hexmap");
-            using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
+            string path = EditorUtility.SaveFilePanel(
+                "Save map",
+                "",
+                gameObject.name + ".hexmap",
+                "hexmap");
+            //string path = Path.Combine(Application.persistentDataPath, "test.hexmap");
+            if (!string.IsNullOrEmpty(path))
             {
-                writer.Write(1);
-                hexGrid.Save(writer);
+                using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
+                {
+                    writer.Write(1);
+                    hexGrid.Save(writer);
+                }
             }
+           
         }
 
         public void Load()
         {
-            string path = Path.Combine(Application.persistentDataPath, "test.hexmap");
-            using (BinaryReader reader = new BinaryReader(File.OpenRead(path)))
+            string path = EditorUtility.OpenFilePanel(
+                "Open map",
+                "",
+                "hexmap");
+            //string path = Path.Combine(Application.persistentDataPath, "test.hexmap");
+            if (!string.IsNullOrEmpty(path))
             {
-                int header = reader.ReadInt32();
-                if (header <= 1)
+                using (BinaryReader reader = new BinaryReader(File.OpenRead(path)))
                 {
-                    hexGrid.Load(reader, header);
-                    HexMapCamera.ValidatePosition();
-                }
-                else
-                {
-                    Debug.LogWarning("Unknown map format " + header);
+                    int header = reader.ReadInt32();
+                    if (header <= 1)
+                    {
+                        hexGrid.Load(reader, header);
+                        HexMapCamera.ValidatePosition();
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Unknown map format " + header);
+                    }
                 }
             }
+            
         }
     }
 }
